@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+  <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">欢迎使用智慧停车系统</h2>
+  <p class="text-gray-500">实时监控和管理停车场运营情况</p>
+</div>
+
+<!-- 轮播图 -->
+<div class="bg-white rounded-xl shadow-card overflow-hidden mb-8">
+  <div class="relative h-[clamp(200px,50vh,400px)]">
+    <div id="carousel" class="h-full w-full overflow-hidden relative">
+      <div class="carousel-inner h-full transition-transform duration-500 ease-in-out flex">
+        <div class="carousel-item min-w-full h-full">
+          <img src="https://design.gemcoder.com/staticResource/echoAiSystemImages/8d2a11f4dea974ee3d323b33f3e2934b.png" class="w-full h-full object-cover" />
+        </div>
+        <div class="carousel-item min-w-full h-full">
+          <img src="https://design.gemcoder.com/staticResource/echoAiSystemImages/70fe3a43cb95e273af978581fc363462.png" class="w-full h-full object-cover" />
+        </div>
+        <div class="carousel-item min-w-full h-full">
+          <img src="https://design.gemcoder.com/staticResource/echoAiSystemImages/c822a1f4475743c3dede1094f7c596f6.png" class="w-full h-full object-cover" />
+        </div>
+      </div>
+      <button id="prevBtn" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center text-primary hover:bg-white shadow-md">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button id="nextBtn" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center text-primary hover:bg-white shadow-md">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+        <button class="carousel-indicator w-3 h-3 rounded-full bg-white opacity-100" data-index="0"></button>
+        <button class="carousel-indicator w-3 h-3 rounded-full bg-white opacity-50" data-index="1"></button>
+        <button class="carousel-indicator w-3 h-3 rounded-full bg-white opacity-50" data-index="2"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 统计卡片 -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  {% set stats = [
+    {"title": "总停车场", "value": "12", "note": "2 个 (本月新增)", "icon": "fa-map-marker-alt", "color": "primary", "trend": "up"},
+    {"title": "总车位数", "value": "1,256", "note": "使用率: 78%", "icon": "fa-square", "color": "secondary", "trend": ""},
+    {"title": "今日停车", "value": "328", "note": "12 辆 (较昨日)", "icon": "fa-car", "color": "warning", "trend": "down"},
+    {"title": "今日收入", "value": "¥12,580", "note": "15.2% (较昨日)", "icon": "fa-wallet", "color": "success", "trend": "up"}
+  ] %}
+  {% for item in stats %}
+  <div class="bg-white rounded-xl shadow-card p-6 hover:shadow-lg transform hover:-translate-y-1 transition-all">
+    <div class="flex items-start justify-between">
+      <div>
+        <p class="text-gray-500 text-sm mb-1">{{ item.title }}</p>
+        <h3 class="text-3xl font-bold">{{ item.value }}</h3>
+        {% if item.note %}
+        <p class="text-{{ item.color }} text-sm mt-2 flex items-center">
+          {% if item.trend == 'up' %}
+          <i class="fas fa-arrow-up mr-1"></i>
+          {% elif item.trend == 'down' %}
+          <i class="fas fa-arrow-down mr-1"></i>
+          {% endif %}
+          {{ item.note }}
+        </p>
+        {% endif %}
+      </div>
+      <div class="w-12 h-12 rounded-lg bg-{{ item.color }}/10 flex items-center justify-center text-{{ item.color }}">
+        <i class="fas {{ item.icon }} text-xl"></i>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

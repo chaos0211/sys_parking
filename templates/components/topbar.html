@@ -1,0 +1,38 @@
+<header class="bg-white shadow-sm z-10">
+  <div class="flex items-center justify-between p-4">
+    <!-- 左侧 -->
+    <div class="flex items-center">
+      <button id="toggleSidebar" class="mr-4 text-gray-500 hover:text-primary md:hidden">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="relative">
+        <input
+          type="text"
+          placeholder="搜索..."
+          class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-64 transition-all"
+        />
+        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+      </div>
+    </div>
+
+    <!-- 右侧 -->
+    <div class="flex items-center space-x-4">
+      <button class="relative p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-full transition-all">
+        <i class="fas fa-bell"></i>
+        <span class="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full"></span>
+      </button>
+      <div class="flex items-center space-x-3">
+        <img
+          src="https://design.gemcoder.com/staticResource/echoAiSystemImages/e2da3f38ca21d74a36f03dbb8b9c0064.png"
+          alt="用户头像"
+          class="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+        />
+        <div class="hidden md:block">
+          <p class="text-sm font-medium">管理员</p>
+          <p class="text-xs text-gray-400">admin@example.com</p>
+        </div>
+        <i class="fas fa-chevron-down text-xs text-gray-400"></i>
+      </div>
+    </div>
+  </div>
+</header>

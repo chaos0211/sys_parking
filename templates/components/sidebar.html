@@ -1,0 +1,61 @@
+<aside id="sidebar" class="w-64 bg-white shadow-lg z-20 transition-all h-full fixed left-0 top-0 md:translate-x-0 -translate-x-full">
+  <div class="flex items-center justify-between p-4 border-b border-gray-200">
+    <div class="flex items-center space-x-2">
+      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+        <i class="fas fa-parking text-white"></i>
+      </div>
+      <h1 class="text-xl font-bold text-primary">智慧停车系统</h1>
+    </div>
+    <button id="closeSidebar" class="md:hidden text-gray-500 hover:text-primary">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <nav class="p-4">
+    <p class="text-xs uppercase text-gray-400 font-semibold mb-3 px-2">主导航</p>
+    <ul class="space-y-1">
+      <li>
+        <a href="/" class="nav-link sidebar-item-active flex items-center space-x-3 px-3 py-3 rounded-lg transition-all" data-page="dashboard">
+          <i class="fas fa-tachometer-alt w-5 text-center"></i>
+          <span>首页</span>
+        </a>
+      </li>
+      <li>
+        <a href="/users" class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100" data-page="user-management">
+          <i class="fas fa-users w-5 text-center"></i>
+          <span>用户管理</span>
+        </a>
+      </li>
+      <li>
+        <a href="/parkings" class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100" data-page="parking-management">
+          <i class="fas fa-map-marker-alt w-5 text-center"></i>
+          <span>停车场管理</span>
+        </a>
+      </li>
+      <li>
+        <a href="/spaces" class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100" data-page="space-management">
+          <i class="fas fa-square w-5 text-center"></i>
+          <span>车位信息管理</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- 系统模块 -->
+  <div class="text-gray-400 text-sm font-bold px-4 mt-6 mb-2">系统</div>
+  <ul class="space-y-1 px-2">
+    <li>
+      <a href="{{ url_for('settings_page') }}"
+         class="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 {% if request.url.path.startswith('/settings') %}bg-blue-50 text-primary{% endif %}">
+        <i class="fas fa-cog w-5"></i>
+        <span>系统设置</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('help_page') }}"
+         class="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 {% if request.url.path.startswith('/help') %}bg-blue-50 text-primary{% endif %}">
+        <i class="fas fa-question-circle w-5"></i>
+        <span>帮助中心</span>
+      </a>
+    </li>
+  </ul>
+</aside>

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h2 class="text-xl font-bold text-dark">停车场管理</h2>
+    <p class="text-gray-500 text-sm">对所有停车场信息进行增删改查</p>
+  </div>
+  <button onclick="openModal('parkingModal')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+    <i class="fas fa-plus mr-1"></i> 添加停车场
+  </button>
+</div>
+
+<!-- 停车场列表 -->
+<div class="overflow-x-auto bg-white rounded-xl shadow p-6">
+  <table class="table-auto w-full text-sm text-left text-gray-500">
+    <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+      <tr>
+        <th class="px-4 py-3">名称</th>
+        <th class="px-4 py-3">封面</th>
+        <th class="px-4 py-3">楼层</th>
+        <th class="px-4 py-3">类型</th>
+        <th class="px-4 py-3">车位数</th>
+        <th class="px-4 py-3">配套设施</th>
+        <th class="px-4 py-3">收费标准</th>
+        <th class="px-4 py-3">操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="border-b">
+        <td class="px-4 py-3">智慧停车场 A</td>
+        <td class="px-4 py-3">
+          <img src="/static/images/cover.jpg" alt="封面" class="w-16 h-10 object-cover rounded" />
+        </td>
+        <td class="px-4 py-3">地上3层</td>
+        <td class="px-4 py-3">室外</td>
+        <td class="px-4 py-3">120</td>
+        <td class="px-4 py-3">摄像头、充电桩</td>
+        <td class="px-4 py-3">¥5/小时</td>
+        <td class="px-4 py-3">
+          <button class="text-blue-600 hover:underline" onclick="openModal('parkingModal')">编辑</button> |
+          <button class="text-red-600 hover:underline">删除</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+{% include 'components/modal_parking.html' %}
+{% endblock %}

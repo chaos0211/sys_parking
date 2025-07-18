@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智慧停车系统</title>
+
+  <!-- TailwindCSS + FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+  <!-- 自定义样式 -->
+  <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+</head>
+<body class="font-inter bg-gray-100 text-dark h-screen flex overflow-hidden">
+  <!-- 侧边栏 -->
+  {% include 'components/sidebar.html' %}
+
+  <!-- 主内容区 -->
+  <div class="flex-1 flex flex-col overflow-hidden md:ml-64">
+    <!-- 顶栏 -->
+    {% include 'components/topbar.html' %}
+
+    <!-- 页面内容区 -->
+    <main class="flex-1 overflow-y-auto p-6 bg-gray-100">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- 页面JS -->
+  <script src="{{ url_for('static', path='js/carousel.js') }}"></script>
+  <script src="{{ url_for('static', path='js/navigation.js') }}"></script>
+  <script src="{{ url_for('static', path='js/user_tabs.js') }}"></script>
+  <script src="{{ url_for('static', path='js/modal.js') }}"></script>
+</body>
+</html>

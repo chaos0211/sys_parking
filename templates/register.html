@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>用户注册</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='css/auth.css') }}">
+</head>
+<body>
+  <div class="register-container">
+    <h2>用户注册</h2>
+    {% if error %}
+      <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label style="display: inline-block; width: 80px;">账号：</label>
+        <input type="text" name="username" required style="width: 200px;">
+      </div>
+      <div class="form-group">
+        <label style="display: inline-block; width: 80px;">密码：</label>
+        <input type="password" name="password" required style="width: 200px;">
+      </div>
+      <div class="form-group">
+        <label style="display: inline-block; width: 80px;">确认密码：</label>
+        <input type="password" name="confirm_password" required style="width: 200px;">
+      </div>
+      <div class="form-group">
+        <label style="display: inline-block; width: 80px;">姓名：</label>
+        <input type="text" name="name" style="width: 200px;">
+      </div>
+      <div class="form-group">
+        <label style="display: inline-block; width: 80px;">性别：</label>
+        <select name="gender" style="width: 208px;">
+          <option value="保密">保密</option>
+          <option value="男">男</option>
+          <option value="女">女</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label style="display: inline-block; width: 80px;">手机号码：</label>
+        <input type="text" name="phone" style="width: 200px;">
+      </div>
+      <div class="form-group">
+        <label style="display: inline-block; width: 80px;">车牌号：</label>
+        <input type="text" name="plate" style="width: 200px;">
+      </div>
+      <div class="form-group">
+        <label style="display: inline-block; width: 180px;">头像（最多三张 .jpg/.png）：</label>
+        <input type="file" name="files" accept=".jpg,.png" multiple>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn">注册</button>
+        <a href="/login" class="link">已有账号，直接登录</a>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

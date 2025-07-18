@@ -22,15 +22,20 @@
         <span class="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full"></span>
       </button>
       <div class="flex items-center space-x-3">
-        <img
-          src="https://design.gemcoder.com/staticResource/echoAiSystemImages/e2da3f38ca21d74a36f03dbb8b9c0064.png"
-          alt="用户头像"
-          class="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
-        />
-        <div class="hidden md:block">
-          <p class="text-sm font-medium">管理员</p>
-          <p class="text-xs text-gray-400">admin@example.com</p>
-        </div>
+        {% if user %}
+          <img
+            src="{% if user.avatar1 %}{{ url_for('static', path='upload/' + user.avatar1 + '.jpg') }}{% else %}{{ url_for('static', path='upload/default.jpg') }}{% endif %}"
+            alt="用户头像"
+            class="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+          />
+          <div class="hidden md:block">
+            <p class="text-sm font-medium">{{ user.role }}</p>
+            <p class="text-xs text-gray-400">{{ user.username }}</p>
+          </div>
+          <a href="/logout" class="text-xs text-red-500 ml-2 hover:underline">退出</a>
+        {% else %}
+          <a href="/login" class="text-sm text-blue-500 hover:underline">登录</a>
+        {% endif %}
         <i class="fas fa-chevron-down text-xs text-gray-400"></i>
       </div>
     </div>

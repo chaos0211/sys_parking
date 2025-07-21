@@ -16,6 +16,6 @@ class User(Base):
     gender = Column(Enum("男", "女", "保密"), default="保密")
     phone = Column(String(20))
     plate = Column(String(20))
-    role = Column(Enum("user", "admin"), default="user")
+    role = Column(Enum("user", "admin", "security"), default="user")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

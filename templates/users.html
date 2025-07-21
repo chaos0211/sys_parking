@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="hidden" id="user-management-flag"></div>
+<p>当前用户：{{ current_user.name }}</p>
 <div class="mb-6 flex items-center justify-between">
   <div>
     <h2 class="text-xl font-bold text-dark">用户管理</h2>
@@ -15,53 +17,161 @@
 <div class="mb-4 border-b border-gray-200">
   <ul class="flex flex-wrap text-sm font-medium text-center text-gray-500" id="userTabs">
     <li class="me-2">
-      <button class="inline-block p-4 rounded-t-lg active text-blue-600 border-b-2 border-blue-600" data-tab="admin">管理员</button>
+      <button class="inline-block p-4 rounded-t-lg active text-blue-600 border-b-2 border-blue-600" data-tab="all" data-role="all">全部用户</button>
     </li>
     <li class="me-2">
-      <button class="inline-block p-4 rounded-t-lg hover:text-blue-600 hover:border-blue-600" data-tab="guard">保安</button>
+      <button class="inline-block p-4 rounded-t-lg hover:text-blue-600 hover:border-blue-600" data-tab="admin" data-role="admin">管理员</button>
     </li>
     <li class="me-2">
-      <button class="inline-block p-4 rounded-t-lg hover:text-blue-600 hover:border-blue-600" data-tab="user">用户</button>
+      <button class="inline-block p-4 rounded-t-lg hover:text-blue-600 hover:border-blue-600" data-tab="guard" data-role="security">保安</button>
+    </li>
+    <li class="me-2">
+      <button class="inline-block p-4 rounded-t-lg hover:text-blue-600 hover:border-blue-600" data-tab="user" data-role="user">用户</button>
     </li>
   </ul>
 </div>
 
-<!-- 管理员表格 -->
-<div class="tab-pane" id="tab-admin">
+<!-- 用户表格 -->
+<div class="tab-pane" id="all">
+  <div class="mb-4 flex justify-between items-center">
+    <div>
+      <button id="btn-add" class="px-3 py-1 bg-green-500 text-white rounded text-sm">新增</button>
+      <button id="btn-detail" class="px-3 py-1 bg-blue-500 text-white rounded text-sm">详情</button>
+      <button id="btn-edit" class="px-3 py-1 bg-yellow-500 text-white rounded text-sm">修改</button>
+      <button id="btn-delete" class="px-3 py-1 bg-red-500 text-white rounded text-sm">删除</button>
+    </div>
+    <div id="pagination" class="text-sm text-gray-600">
+      <button id="prevPage" class="mr-2 text-blue-500 hover:underline">上一页</button>
+      <span id="pageIndicator">第 1 页</span>
+      <button id="nextPage" class="ml-2 text-blue-500 hover:underline">下一页</button>
+    </div>
+  </div>
   <table class="table-auto w-full text-left text-sm text-gray-500 border rounded-xl overflow-hidden shadow">
     <thead class="bg-gray-100 text-gray-700">
       <tr>
-        <th class="px-4 py-3">姓名</th>
-        <th class="px-4 py-3">用户名</th>
-        <th class="px-4 py-3">联系电话</th>
-        <th class="px-4 py-3">邮箱</th>
-        <th class="px-4 py-3">操作</th>
+        <th class="px-3 py-2">选择</th>
+        <th class="px-3 py-2">序号</th>
+        <th class="px-3 py-2">用户账号</th>
+        <th class="px-3 py-2">用户姓名</th>
+        <th class="px-3 py-2">头像</th>
+        <th class="px-3 py-2">性别</th>
+        <th class="px-3 py-2">手机号码</th>
+        <th class="px-3 py-2">车牌号</th>
+        <th class="px-3 py-2">操作</th>
       </tr>
     </thead>
-    <tbody>
-      <tr class="border-b">
-        <td class="px-4 py-3">张三</td>
-        <td class="px-4 py-3">admin001</td>
-        <td class="px-4 py-3">12345678901</td>
-        <td class="px-4 py-3">admin@example.com</td>
-        <td class="px-4 py-3">
-          <button class="text-blue-600 hover:underline" onclick="openModal('adminModal')">编辑</button> |
-          <button class="text-red-600 hover:underline">删除</button>
-        </td>
+    <tbody id="userTableBody-all">
+      <!-- 由 JS 动态填充 -->
+    </tbody>
+  </table>
+</div>
+
+<!-- 管理员表格 -->
+<div class="tab-pane hidden" id="admin">
+  <div class="mb-4 flex justify-between items-center">
+    <div>
+      <button id="btn-add-admin" class="px-3 py-1 bg-green-500 text-white rounded text-sm">新增</button>
+      <button id="btn-detail-admin" class="px-3 py-1 bg-blue-500 text-white rounded text-sm">详情</button>
+      <button id="btn-edit-admin" class="px-3 py-1 bg-yellow-500 text-white rounded text-sm">修改</button>
+      <button id="btn-delete-admin" class="px-3 py-1 bg-red-500 text-white rounded text-sm">删除</button>
+    </div>
+  </div>
+  <table class="table-auto w-full text-left text-sm text-gray-500 border rounded-xl overflow-hidden shadow">
+    <thead class="bg-gray-100 text-gray-700">
+      <tr>
+        <th class="px-3 py-2">选择</th>
+        <th class="px-3 py-2">序号</th>
+        <th class="px-3 py-2">用户账号</th>
+        <th class="px-3 py-2">用户姓名</th>
+        <th class="px-3 py-2">头像</th>
+        <th class="px-3 py-2">性别</th>
+        <th class="px-3 py-2">手机号码</th>
+        <th class="px-3 py-2">车牌号</th>
+        <th class="px-3 py-2">操作</th>
       </tr>
+    </thead>
+    <tbody id="userTableBody-admin">
     </tbody>
   </table>
 </div>
 
 <!-- 保安表格 -->
-<div class="tab-pane hidden" id="tab-guard">
-  <p class="text-gray-400 italic">暂无保安数据...</p>
+<div class="tab-pane hidden" id="guard">
+  <div class="mb-4 flex justify-between items-center">
+    <div>
+      <button id="btn-add-guard" class="px-3 py-1 bg-green-500 text-white rounded text-sm">新增</button>
+      <button id="btn-detail-guard" class="px-3 py-1 bg-blue-500 text-white rounded text-sm">详情</button>
+      <button id="btn-edit-guard" class="px-3 py-1 bg-yellow-500 text-white rounded text-sm">修改</button>
+      <button id="btn-delete-guard" class="px-3 py-1 bg-red-500 text-white rounded text-sm">删除</button>
+    </div>
+  </div>
+  <table class="table-auto w-full text-left text-sm text-gray-500 border rounded-xl overflow-hidden shadow">
+    <thead class="bg-gray-100 text-gray-700">
+      <tr>
+        <th class="px-3 py-2">选择</th>
+        <th class="px-3 py-2">序号</th>
+        <th class="px-3 py-2">用户账号</th>
+        <th class="px-3 py-2">用户姓名</th>
+        <th class="px-3 py-2">头像</th>
+        <th class="px-3 py-2">性别</th>
+        <th class="px-3 py-2">手机号码</th>
+        <th class="px-3 py-2">车牌号</th>
+        <th class="px-3 py-2">操作</th>
+      </tr>
+    </thead>
+    <tbody id="userTableBody-guard">
+    </tbody>
+  </table>
 </div>
 
 <!-- 用户表格 -->
-<div class="tab-pane hidden" id="tab-user">
-  <p class="text-gray-400 italic">暂无用户数据...</p>
+<div class="tab-pane hidden" id="user">
+  <div class="mb-4 flex justify-between items-center">
+    <div>
+      <button id="btn-add-user" class="px-3 py-1 bg-green-500 text-white rounded text-sm">新增</button>
+      <button id="btn-detail-user" class="px-3 py-1 bg-blue-500 text-white rounded text-sm">详情</button>
+      <button id="btn-edit-user" class="px-3 py-1 bg-yellow-500 text-white rounded text-sm">修改</button>
+      <button id="btn-delete-user" class="px-3 py-1 bg-red-500 text-white rounded text-sm">删除</button>
+    </div>
+  </div>
+  <table class="table-auto w-full text-left text-sm text-gray-500 border rounded-xl overflow-hidden shadow">
+    <thead class="bg-gray-100 text-gray-700">
+      <tr>
+        <th class="px-3 py-2">选择</th>
+        <th class="px-3 py-2">序号</th>
+        <th class="px-3 py-2">用户账号</th>
+        <th class="px-3 py-2">用户姓名</th>
+        <th class="px-3 py-2">头像</th>
+        <th class="px-3 py-2">性别</th>
+        <th class="px-3 py-2">手机号码</th>
+        <th class="px-3 py-2">车牌号</th>
+        <th class="px-3 py-2">操作</th>
+      </tr>
+    </thead>
+    <tbody id="userTableBody-user">
+    </tbody>
+  </table>
+</div>
+
+<!-- 用户详情弹窗 -->
+<div id="userDetailModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+  <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+    <div class="flex">
+      <img id="detail-avatar" src="" alt="头像" class="w-20 h-20 rounded-full mr-4 object-cover">
+      <div class="text-sm text-gray-700">
+        <p>账号：<span id="detail-username"></span></p>
+        <p>姓名：<span id="detail-name"></span></p>
+        <p>性别：<span id="detail-gender"></span></p>
+        <p>手机号：<span id="detail-phone"></span></p>
+        <p>车牌号：<span id="detail-plate"></span></p>
+      </div>
+    </div>
+    <div class="text-right mt-4">
+      <button onclick="closeModal('userDetailModal')" class="px-3 py-1 bg-gray-400 text-white rounded">关闭</button>
+    </div>
+  </div>
 </div>
 
 {% include 'components/modal_admin.html' %}
+<script src="/static/js/users.js"></script>
 {% endblock %}

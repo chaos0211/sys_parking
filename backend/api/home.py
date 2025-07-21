@@ -13,7 +13,7 @@ router = APIRouter()
 
 @router.get("/", name="home")
 async def dashboard(request: Request):
-    user = None
+    # user = None
     user_id = request.cookies.get("user_id")
     if user_id:
         db = SessionLocal()

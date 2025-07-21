@@ -24,15 +24,25 @@
       <div class="flex items-center space-x-3">
         {% if user %}
           <img
-            src="{% if user.avatar1 %}{{ url_for('static', path='upload/' + user.avatar1 + '.jpg') }}{% else %}{{ url_for('static', path='upload/default.jpg') }}{% endif %}"
-            alt="用户头像"
-            class="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
-          />
+            {% if user.avatar1 %}
+              {% set avatar_path = 'upload/' + user.avatar1  %}
+              <img
+                src="{{ url_for('static', path=avatar_path) }}"
+                alt="用户头像"
+                class="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+              />
+            {% else %}
+              <img
+                src="{{ url_for('static', path='upload/default.jpg') }}"
+                alt="用户头像"
+                class="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+              />
+            {% endif %}
           <div class="hidden md:block">
             <p class="text-sm font-medium">{{ user.role }}</p>
             <p class="text-xs text-gray-400">{{ user.username }}</p>
           </div>
-          <a href="/logout" class="text-xs text-red-500 ml-2 hover:underline">退出</a>
+          <a href="/logout" class="text-xs text-red-500 ml-2 hover:underline">登出</a>
         {% else %}
           <a href="/login" class="text-sm text-blue-500 hover:underline">登录</a>
         {% endif %}

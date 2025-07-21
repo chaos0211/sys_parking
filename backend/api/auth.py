@@ -12,7 +12,7 @@ from datetime import timedelta, datetime
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
-UPLOAD_DIR = Path("upload")
+UPLOAD_DIR = Path("static/upload")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 def sha1_path(file: UploadFile):
@@ -114,7 +114,6 @@ def get_current_user(request: Request, user_id: str = Cookie(default=None)):
         "role": user.role
     }
     return templates.TemplateResponse("dashboard.html", {"request": request, "user": user_data})
-    # return render_with_user(request, "dashboard.html", {"user": user_data})
 
 @router.get("/logout")
 def logout(response: Response):

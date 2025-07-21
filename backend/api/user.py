@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request, Path, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from api.auth import get_current_user
+from middleware.user import get_current_user
 
 # 注意这里路径要指向主目录下的 templates 文件夹
 templates = Jinja2Templates(directory="templates")

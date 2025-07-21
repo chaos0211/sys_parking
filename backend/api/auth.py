@@ -100,20 +100,20 @@ async def login_user(
     else:
         return templates.TemplateResponse("login.html", {"request": request, "error": "用户名或密码错误"})
 
-@router.get("/me")
-def get_current_user(request: Request, user_id: str = Cookie(default=None)):
-    if not user_id:
-        return RedirectResponse("/login")
-    db: Session = SessionLocal()
-    user = db.query(User).filter_by(id=user_id).first()
-    db.close()
-    if not user:
-        return RedirectResponse("/login")
-    user_data = {
-        "avatar1": user.avatar1,
-        "role": user.role
-    }
-    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user_data})
+# @router.get("/me")
+# def get_current_user(request: Request, user_id: str = Cookie(default=None)):
+#     if not user_id:
+#         return RedirectResponse("/login")
+#     db: Session = SessionLocal()
+#     user = db.query(User).filter_by(id=user_id).first()
+#     db.close()
+#     if not user:
+#         return RedirectResponse("/login")
+#     user_data = {
+#         "avatar1": user.avatar1,
+#         "role": user.role
+#     }
+#     return templates.TemplateResponse("dashboard.html", {"request": request, "user": user_data})
 
 @router.get("/logout")
 def logout(response: Response):

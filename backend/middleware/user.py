@@ -15,3 +15,13 @@ class UserContextMiddleware(BaseHTTPMiddleware):
                 request.state.user = user
         response = await call_next(request)
         return response
+
+# auth.py 或 middleware/user.py 中定义
+def get_current_user(request: Request) -> User:
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return None
+    db: Session = SessionLocal()
+    user = db.query(User).filter_by(id=user_id).first()
+    db.close()
+    return user

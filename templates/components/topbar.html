@@ -22,10 +22,10 @@
         <span class="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full"></span>
       </button>
       <div class="flex items-center space-x-3">
-        {% if user %}
+        {% if current_user %}
           <img
-            {% if user.avatar1 %}
-              {% set avatar_path = 'upload/' + user.avatar1  %}
+            {% if current_user.avatar1 %}
+              {% set avatar_path = 'upload/' + current_user.avatar1  %}
               <img
                 src="{{ url_for('static', path=avatar_path) }}"
                 alt="用户头像"
@@ -39,8 +39,8 @@
               />
             {% endif %}
           <div class="hidden md:block">
-            <p class="text-sm font-medium">{{ user.role }}</p>
-            <p class="text-xs text-gray-400">{{ user.username }}</p>
+            <p class="text-sm font-medium">{{ current_user.role }}</p>
+            <p class="text-xs text-gray-400">{{ current_user.username }}</p>
           </div>
           <a href="/logout" class="text-xs text-red-500 ml-2 hover:underline">登出</a>
         {% else %}

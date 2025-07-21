@@ -59,7 +59,7 @@ def save_avatar_file(file: UploadFile, upload_dir: str = "static/upload") -> str
     file_path = os.path.join(upload_dir, sha1_name)
     with open(file_path, "wb") as f:
         f.write(content)
-    return hashlib.sha1(content).hexdigest()
+    return hashlib.sha1(content).hexdigest() + ext
 
 @router.post("/api/users/add")
 async def add_user(
@@ -69,6 +69,7 @@ async def add_user(
     gender: str = Form(...),
     phone: str = Form(...),
     plate: str = Form(...),
+    role: str = Form("user"),
     avatar1: UploadFile = File(None),
     avatar2: UploadFile = File(None),
     avatar3: UploadFile = File(None),
@@ -81,6 +82,7 @@ async def add_user(
         gender=gender,
         phone=phone,
         plate=plate,
+        role=role,
     )
     if avatar1:
         user.avatar1 = save_avatar_file(avatar1)
@@ -128,6 +130,7 @@ async def update_user(
     gender: str = Form(...),
     phone: str = Form(...),
     plate: str = Form(...),
+    role: str =  Form("user"),
     avatar1: UploadFile = File(None),
     avatar2: UploadFile = File(None),
     avatar3: UploadFile = File(None),
@@ -143,6 +146,7 @@ async def update_user(
     user.gender = gender
     user.phone = phone
     user.plate = plate
+    user.role = role
     if avatar1:
         user.avatar1 = save_avatar_file(avatar1)
     if avatar2:

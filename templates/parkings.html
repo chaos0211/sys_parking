@@ -6,8 +6,23 @@
     <h2 class="text-xl font-bold text-dark">停车场管理</h2>
     <p class="text-gray-500 text-sm">对所有停车场信息进行增删改查</p>
   </div>
-  <button onclick="openModal('parkingModal')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-    <i class="fas fa-plus mr-1"></i> 添加停车场
+<!--  <button onclick="openModal('parkingModal')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">-->
+<!--    <i class="fas fa-plus mr-1"></i> 添加停车场-->
+<!--  </button>-->
+</div>
+
+<div class="mb-4 space-x-2">
+  <button id="addParkingBtn" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+    <i class="fas fa-plus mr-1"></i> 添加
+  </button>
+  <button id="viewParkingBtn" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">
+    <i class="fas fa-eye mr-1"></i> 详情
+  </button>
+  <button id="editParkingBtn" class="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm">
+    <i class="fas fa-edit mr-1"></i> 编辑
+  </button>
+  <button id="deleteParkingBtn" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
+    <i class="fas fa-trash mr-1"></i> 删除
   </button>
 </div>
 
@@ -16,35 +31,93 @@
   <table class="table-auto w-full text-sm text-left text-gray-500">
     <thead class="text-xs text-gray-700 uppercase bg-gray-100">
       <tr>
-        <th class="px-4 py-3">名称</th>
-        <th class="px-4 py-3">封面</th>
-        <th class="px-4 py-3">楼层</th>
-        <th class="px-4 py-3">类型</th>
-        <th class="px-4 py-3">车位数</th>
-        <th class="px-4 py-3">配套设施</th>
-        <th class="px-4 py-3">收费标准</th>
-        <th class="px-4 py-3">操作</th>
+        <th class="px-4 py-3 text-center whitespace-nowrap">选择</th>
+        <th class="px-4 py-3 text-center whitespace-nowrap">名称</th>
+        <th class="px-4 py-3 text-center whitespace-nowrap">封面</th>
+        <th class="px-4 py-3 text-center whitespace-nowrap">楼层</th>
+        <th class="px-4 py-3 text-center whitespace-nowrap">类型</th>
+        <th class="px-4 py-3 text-center whitespace-nowrap">车位数</th>
+        <th class="px-4 py-3 text-center whitespace-nowrap">配套设施</th>
+        <th class="px-4 py-3 text-center whitespace-nowrap">收费标准</th>
+        <th class="px-4 py-3 text-center whitespace-nowrap">操作</th>
       </tr>
     </thead>
     <tbody>
-      <tr class="border-b">
-        <td class="px-4 py-3">智慧停车场 A</td>
-        <td class="px-4 py-3">
-          <img src="/static/images/cover.jpg" alt="封面" class="w-16 h-10 object-cover rounded" />
-        </td>
-        <td class="px-4 py-3">地上3层</td>
-        <td class="px-4 py-3">室外</td>
-        <td class="px-4 py-3">120</td>
-        <td class="px-4 py-3">摄像头、充电桩</td>
-        <td class="px-4 py-3">¥5/小时</td>
-        <td class="px-4 py-3">
-          <button class="text-blue-600 hover:underline" onclick="openModal('parkingModal')">编辑</button> |
-          <button class="text-red-600 hover:underline">删除</button>
-        </td>
-      </tr>
+      <!-- 数据将由 parking.js 动态填充 -->
     </tbody>
   </table>
 </div>
-
-{% include 'components/modal_parking.html' %}
+{% include "components/modal_parking.html" %}
+<!-- 编辑弹窗 -->
+<div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-auto p-6 relative">
+    <h3 class="text-lg font-bold mb-4">编辑停车场信息</h3>
+    <form id="edit-parking-form" class="space-y-4">
+      <input type="hidden" name="id" id="edit-id">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">名称</label>
+        <input type="text" name="name" id="edit-name" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">楼层</label>
+        <input type="text" name="floor" id="edit-floor" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">类型</label>
+        <select name="type" id="edit-type" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+          <option value="地下">地下</option>
+          <option value="室内">室内</option>
+          <option value="室外">室外</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">车位数</label>
+        <input type="number" name="slots" id="edit-slots" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">配套设施</label>
+        <input type="text" name="facilities" id="edit-facilities" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">收费标准</label>
+        <input type="text" name="charge" id="edit-charge" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">详情描述</label>
+        <textarea name="description" id="edit-description" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2"></textarea>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')" class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">取消</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">修改</button>
+      </div>
+    </form>
+    <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="absolute top-2 right-2 text-gray-600 hover:text-black">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+<!-- 查看详情弹窗 -->
+<div id="view-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 max-h-[90vh] overflow-auto p-6 relative">
+    <h3 class="text-lg font-bold mb-4">停车场详情</h3>
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex-shrink-0 w-full md:w-1/3">
+        <img id="view-cover" src="" alt="封面" class="w-full rounded object-cover h-48 md:h-full">
+      </div>
+      <div class="flex-1 text-sm text-gray-700 space-y-3">
+        <div class="flex"><span class="w-28 font-semibold">名称：</span><span id="view-name"></span></div>
+        <div class="flex"><span class="w-28 font-semibold">楼层：</span><span id="view-floor"></span></div>
+        <div class="flex"><span class="w-28 font-semibold">类型：</span><span id="view-type"></span></div>
+        <div class="flex"><span class="w-28 font-semibold">车位数：</span><span id="view-slots"></span></div>
+        <div class="flex"><span class="w-28 font-semibold">配套设施：</span><span id="view-facilities"></span></div>
+        <div class="flex"><span class="w-28 font-semibold">收费标准：</span><span id="view-charge"></span></div>
+        <div class="flex"><span class="w-28 font-semibold">详情描述：</span><span id="view-description"></span></div>
+      </div>
+    </div>
+    <button onclick="document.getElementById('view-modal').classList.add('hidden')" class="absolute top-2 right-2 text-gray-600 hover:text-black">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+<script src="{{ url_for('static', path='/js/parkings.js') }}"></script>
 {% endblock %}

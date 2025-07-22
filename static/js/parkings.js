@@ -1,5 +1,8 @@
+let currentPage = 1;
+const pageSize = 10;
+
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("DOMContentLoaded 已触发");
+    // console.log("DOMContentLoaded 已触发");
     // 顶部按钮事件绑定
     // 等待 #parkingModal 渲染完成再绑定事件
     const waitForModal = setInterval(() => {
@@ -56,12 +59,14 @@ document.addEventListener("DOMContentLoaded", function () {
     //     });
 
     // 加载停车场数据
-    function loadParkings() {
-        fetch("/api/parkings")
+    function loadParkings(page = 1) {
+        currentPage = page;
+        fetch(`/api/parkings?page=${page}&size=${pageSize}`)
             .then(res => res.json())
             .then(data => {
+                const tbody = document.querySelector("tbody");
                 tbody.innerHTML = "";
-                data.forEach((p, index) => {
+                data.items.forEach((p, index) => {
                     const row = document.createElement("tr");
                     row.className = "border-b";
                     row.innerHTML = `
@@ -75,7 +80,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td class="px-4 py-3 text-center whitespace-nowrap">${p.slots}</td>
                         <td class="px-4 py-3 text-center whitespace-nowrap">${p.facilities}</td>
                         <td class="px-4 py-3 text-center whitespace-nowrap">${p.charge} 元/小时</td>
-<!--                        <td class="px-4 py-3 text-center whitespace-nowrap">${p.description}</td>-->
                         <td class="px-4 py-3 text-center whitespace-nowrap">
                             <button class="text-blue-500 hover:underline" onclick="viewParking(${p.id})">详情</button>
                             <button class="text-green-500 hover:underline ml-2" onclick="editParking(${p.id})">修改</button>
@@ -83,7 +87,50 @@ document.addEventListener("DOMContentLoaded", function () {
                     `;
                     tbody.appendChild(row);
                 });
+
+                renderPagination(data.total);
             });
+    }
+
+    function renderPagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / pageSize);
+        const pagination = document.getElementById("pagination");
+        if (!pagination) return;
+        // Ensure pagination is after the table in the wrapper
+        const tableWrapper = document.getElementById("parking-table-wrapper");
+        if (tableWrapper && pagination.parentNode !== tableWrapper) {
+            tableWrapper.appendChild(pagination);
+        }
+
+        pagination.innerHTML = "";
+
+        // 添加上一页
+        const prevBtn = document.createElement("button");
+        prevBtn.textContent = "«";
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.className = "mx-1 px-2 py-1 border rounded";
+        prevBtn.addEventListener("click", () => {
+            if (currentPage > 1) loadParkings(currentPage - 1);
+        });
+        pagination.appendChild(prevBtn);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement("button");
+            btn.textContent = i;
+            btn.className = "mx-1 px-2 py-1 border rounded " + (i === currentPage ? "bg-blue-500 text-white" : "bg-white");
+            btn.addEventListener("click", () => loadParkings(i));
+            pagination.appendChild(btn);
+        }
+
+        // 添加下一页
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "»";
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.className = "mx-1 px-2 py-1 border rounded";
+        nextBtn.addEventListener("click", () => {
+            if (currentPage < totalPages) loadParkings(currentPage + 1);
+        });
+        pagination.appendChild(nextBtn);
     }
 
     window.loadParkings = loadParkings;

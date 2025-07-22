@@ -47,6 +47,7 @@
     </tbody>
   </table>
 </div>
+<div id="pagination" class="mt-4 flex justify-center space-x-1"></div>
 {% include "components/modal_parking.html" %}
 <!-- 编辑弹窗 -->
 <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
@@ -81,6 +82,13 @@
       <div>
         <label class="block text-sm font-medium text-gray-700">收费标准</label>
         <input type="text" name="charge" id="edit-charge" class="mt-1 block w-full border border-gray-300 rounded px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">封面</label>
+        <div class="flex items-center space-x-4 mt-1">
+<!--          <img id="edit-cover-preview" src="" alt="封面预览" class="w-24 h-16 object-cover rounded border">-->
+          <input type="file" accept="image/*" name="cover" id="edit-cover" class="block w-full border border-gray-300 rounded px-3 py-2">
+        </div>
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700">详情描述</label>

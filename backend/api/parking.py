@@ -39,23 +39,27 @@ def save_cover_file(file: UploadFile):
 
 # API: List all parkings
 @router.get("/api/parkings")
-async def list_parkings():
+async def list_parkings(page: int = 1, limit: int = 10):
     db: Session = SessionLocal()
-    data = db.query(Parking).order_by(Parking.id.desc()).all()
+    total = db.query(Parking).count()
+    data = db.query(Parking).order_by(Parking.id.desc()).offset((page - 1) * limit).limit(limit).all()
     db.close()
-    return JSONResponse(content=[{
-        "id": p.id,
-        "name": p.name,
-        "cover": p.cover,
-        "floor": p.floor,
-        "type": p.type,
-        "slots": p.slots,
-        "facilities": p.facilities,
-        "charge": p.charge,
-        "description": p.description,
-        "created_at": p.created_at.isoformat(),
-        "updated_at": p.updated_at.isoformat()
-    } for p in data])
+    return JSONResponse(content={
+        "total": total,
+        "items": [{
+            "id": p.id,
+            "name": p.name,
+            "cover": p.cover,
+            "floor": p.floor,
+            "type": p.type,
+            "slots": p.slots,
+            "facilities": p.facilities,
+            "charge": p.charge,
+            "description": p.description,
+            "created_at": p.created_at.isoformat(),
+            "updated_at": p.updated_at.isoformat()
+        } for p in data]
+    })
 
 
 # API: Add a parking

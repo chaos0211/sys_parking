@@ -1,0 +1,3178 @@
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>智慧停车系统</title>
+    <script src="https://res.gemcoder.com/js/reload.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script>
+      // 配置Tailwind自定义主题
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#165DFF',
+              secondary: '#36CFC9',
+              success: '#52C41A',
+              warning: '#FAAD14',
+              danger: '#FF4D4F',
+              info: '#1890FF',
+              dark: '#1D2129',
+              'gray-100': '#F2F3F5',
+              'gray-200': '#E5E6EB',
+              'gray-300': '#C9CDD4',
+              'gray-400': '#86909C',
+              'gray-500': '#4E5969'
+            },
+            fontFamily: {
+              inter: ['Inter', 'system-ui', 'sans-serif']
+            },
+            boxShadow: {
+              'card': '0 2px 14px 0 rgba(0, 0, 0, 0.06)',
+              'dropdown': '0 4px 16px 0 rgba(0, 0, 0, 0.08)'
+            }
+          }
+        }
+      };
+    </script>
+    <style type="text/tailwindcss">
+              @layer utilities {
+                  .content-auto {
+                      content-visibility: auto;
+                  }
+                  .sidebar-item-active {
+                      @apply bg-primary/10 text-primary border-l-4 border-primary;
+                  }
+                  .transition-all-300 {
+                      transition: all 0.3s ease;
+                  }
+                  .rotate-y-180 {
+                      transform: rotateY(180deg);
+                  }
+                  .backface-hidden {
+                      backface-visibility: hidden;
+                  }
+                  .perspective-1000 {
+                      perspective: 1000px;
+                  }
+      .preserve-3d {
+                      transform-style: preserve-3d;
+                  }
+                  .nav-dropdown-menu {
+                      max-height: 0;
+                      overflow: hidden;
+                      transition: max-height 0.3s ease-out;
+                  }
+                  .nav-dropdown-menu.show {
+                      max-height: 500px;
+                      transition: max-height 0.5s ease-in;
+                  }
+                  .rotate-180 {
+                      transform: rotate(180deg);
+                  }
+              }
+    </style>
+  </head>
+  <body class="font-inter bg-gray-100 text-dark h-screen flex overflow-hidden">
+    <!-- 侧边栏 -->
+    <aside
+      class="w-64 bg-white shadow-lg z-20 transition-all duration-300 ease-in-out h-full fixed left-0 top-0 transform -translate-x-full md:translate-x-0"
+      id="sidebar"
+    >
+      <div
+        class="flex items-center justify-between p-4 border-b border-gray-200"
+      >
+        <div class="flex items-center space-x-2">
+          <div
+            class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"
+          >
+            <i class="fas fa-parking text-white"> </i>
+          </div>
+          <h1 class="text-xl font-bold text-primary">智慧停车系统</h1>
+        </div>
+        <button
+          class="md:hidden text-gray-500 hover:text-primary"
+          id="closeSidebar"
+        >
+          <i class="fas fa-times"> </i>
+        </button>
+      </div>
+      <nav class="p-4">
+        <div class="mb-6">
+          <p class="text-xs uppercase text-gray-400 font-semibold mb-3 px-2">
+            主导航
+          </p>
+          <ul class="space-y-1">
+            <li>
+              <a
+                class="nav-link sidebar-item-active flex items-center space-x-3 px-3 py-3 rounded-lg transition-all-300"
+                data-page="dashboard"
+                href="javascript:void(0);"
+              >
+                <i class="fas fa-tachometer-alt w-5 text-center"> </i>
+                <span> 首页 </span>
+              </a>
+            </li>
+            <li>
+              <a
+                class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg transition-all-300 hover:bg-gray-100"
+                data-page="user-management"
+                href="javascript:void(0);"
+              >
+                <i class="fas fa-users w-5 text-center"> </i>
+                <span> 用户管理 </span>
+              </a>
+            </li>
+            <li>
+              <a
+                class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg transition-all-300 hover:bg-gray-100"
+                data-page="parking-management"
+                href="javascript:void(0);"
+              >
+                <i class="fas fa-map-marker-alt w-5 text-center"> </i>
+                <span> 停车场管理 </span>
+              </a>
+            </li>
+            <li class="nav-dropdown">
+              <a
+                class="nav-link flex items-center justify-between space-x-3 px-3 py-3 rounded-lg transition-all-300 hover:bg-gray-100 cursor-pointer"
+                id="space-management-parent"
+              >
+                <div class="flex items-center space-x-3">
+                  <i class="fas fa-square w-5 text-center"> </i>
+                  <span> 车位信息管理 </span>
+                </div>
+                <i
+                  class="fas fa-chevron-down text-xs text-gray-400 transition-transform duration-300"
+                >
+                </i>
+              </a>
+              <ul class="nav-dropdown-menu hidden pl-10 mt-1 space-y-1">
+                <li>
+                  <a
+                    class="nav-link flex items-center space-x-3 px-3 py-2 rounded-lg transition-all-300 hover:bg-gray-100"
+                    data-page="space-list"
+                    href="javascript:void(0);"
+                  >
+                    <i class="fas fa-list w-5 text-center"> </i>
+                    <span> 车位信息 </span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="nav-link flex items-center space-x-3 px-3 py-2 rounded-lg transition-all-300 hover:bg-gray-100"
+                    data-page="space-type"
+                    href="javascript:void(0);"
+                  >
+                    <i class="fas fa-tags w-5 text-center"> </i>
+                    <span> 车位类型 </span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="nav-link flex items-center space-x-3 px-3 py-2 rounded-lg transition-all-300 hover:bg-gray-100"
+                    data-page="space-reservation"
+                    href="javascript:void(0);"
+                  >
+                    <i class="fas fa-calendar-check w-5 text-center"> </i>
+                    <span> 车位预约 </span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="nav-link flex items-center space-x-3 px-3 py-2 rounded-lg transition-all-300 hover:bg-gray-100"
+                    data-page="vehicle-entry"
+                    href="javascript:void(0);"
+                  >
+                    <i class="fas fa-sign-in-alt w-5 text-center"> </i>
+                    <span> 车辆入场 </span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="nav-link flex items-center space-x-3 px-3 py-2 rounded-lg transition-all-300 hover:bg-gray-100"
+                    data-page="vehicle-exit"
+                    href="javascript:void(0);"
+                  >
+                    <i class="fas fa-sign-out-alt w-5 text-center"> </i>
+                    <span> 车辆离场 </span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs uppercase text-gray-400 font-semibold mb-3 px-2">
+            系统
+          </p>
+          <ul class="space-y-1">
+            <li>
+              <a
+                class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg transition-all-300 hover:bg-gray-100"
+                href="javascript:void(0);"
+              >
+                <i class="fas fa-cog w-5 text-center"> </i>
+                <span> 系统设置 </span>
+              </a>
+            </li>
+            <li>
+              <a
+                class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg transition-all-300 hover:bg-gray-100"
+                href="javascript:void(0);"
+              >
+                <i class="fas fa-question-circle w-5 text-center"> </i>
+                <span> 帮助中心 </span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    <!-- 主内容区 -->
+    <div
+      class="flex-1 flex flex-col overflow-hidden md:ml-64 transition-all duration-300"
+    >
+      <!-- 顶栏 -->
+      <header class="bg-white shadow-sm z-10">
+        <div class="flex items-center justify-between p-4">
+          <div class="flex items-center">
+            <button
+              class="mr-4 text-gray-500 hover:text-primary md:hidden"
+              id="toggleSidebar"
+            >
+              <i class="fas fa-bars"> </i>
+            </button>
+            <div class="relative">
+              <input
+                class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-64 transition-all"
+                placeholder="搜索..."
+                type="text"
+              />
+              <i
+                class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              >
+              </i>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <button
+              class="relative p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-full transition-all"
+            >
+              <i class="fas fa-bell"> </i>
+              <span
+                class="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full"
+              >
+              </span>
+            </button>
+            <div class="flex items-center space-x-3">
+              <img
+                alt="用户头像"
+                class="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                src="https://design.gemcoder.com/staticResource/echoAiSystemImages/e2da3f38ca21d74a36f03dbb8b9c0064.png"
+              />
+              <div class="hidden md:block">
+                <p class="text-sm font-medium">管理员</p>
+                <p class="text-xs text-gray-400">admin@example.com</p>
+              </div>
+              <i class="fas fa-chevron-down text-xs text-gray-400"> </i>
+            </div>
+          </div>
+        </div>
+      </header>
+      <!-- 页面内容 -->
+      <main class="flex-1 overflow-y-auto p-6 bg-gray-100">
+        <!-- 首页 -->
+        <div class="page-content" id="dashboard-page">
+          <div class="mb-6">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+              欢迎使用智慧停车系统
+            </h2>
+            <p class="text-gray-500">实时监控和管理停车场运营情况</p>
+          </div>
+          <!-- 车库轮播图 -->
+          <div class="bg-white rounded-xl shadow-card overflow-hidden mb-8">
+            <div class="relative h-[clamp(200px,50vh,400px)]">
+              <div class="h-full w-full overflow-hidden relative" id="carousel">
+                <div
+                  class="carousel-inner h-full transition-transform duration-500 ease-in-out flex"
+                >
+                  <div class="carousel-item min-w-full h-full">
+                    <img
+                      alt="车库图片1"
+                      class="w-full h-full object-cover"
+                      src="https://design.gemcoder.com/staticResource/echoAiSystemImages/8d2a11f4dea974ee3d323b33f3e2934b.png"
+                    />
+                  </div>
+                  <div class="carousel-item min-w-full h-full">
+                    <img
+                      alt="车库图片2"
+                      class="w-full h-full object-cover"
+                      src="https://design.gemcoder.com/staticResource/echoAiSystemImages/70fe3a43cb95e273af978581fc363462.png"
+                    />
+                  </div>
+                  <div class="carousel-item min-w-full h-full">
+                    <img
+                      alt="车库图片3"
+                      class="w-full h-full object-cover"
+                      src="https://design.gemcoder.com/staticResource/echoAiSystemImages/c822a1f4475743c3dede1094f7c596f6.png"
+                    />
+                  </div>
+                </div>
+                <!-- 轮播控制按钮 -->
+                <button
+                  class="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center text-primary hover:bg-white transition-all shadow-md"
+                  id="prevBtn"
+                >
+                  <i class="fas fa-chevron-left"> </i>
+                </button>
+                <button
+                  class="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-full bg-white/80 flex items-center justify-center text-primary hover:bg-white transition-all shadow-md"
+                  id="nextBtn"
+                >
+                  <i class="fas fa-chevron-right"> </i>
+                </button>
+                <!-- 轮播指示器 -->
+                <div
+                  class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2"
+                >
+                  <button
+                    class="carousel-indicator w-3 h-3 rounded-full bg-white opacity-100"
+                    data-index="0"
+                  ></button>
+                  <button
+                    class="carousel-indicator w-3 h-3 rounded-full bg-white opacity-50"
+                    data-index="1"
+                  ></button>
+                  <button
+                    class="carousel-indicator w-3 h-3 rounded-full bg-white opacity-50"
+                    data-index="2"
+                  ></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 统计卡片 -->
+          <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          >
+            <div
+              class="bg-white rounded-xl shadow-card p-6 transition-all hover:shadow-lg transform hover:-translate-y-1"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-gray-500 text-sm mb-1">总停车场</p>
+                  <h3 class="text-3xl font-bold">12</h3>
+                  <p class="text-success text-sm mt-2 flex items-center">
+                    <i class="fas fa-arrow-up mr-1"> </i>
+                    2 个 (本月新增)
+                  </p>
+                </div>
+                <div
+                  class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary"
+                >
+                  <i class="fas fa-map-marker-alt text-xl"> </i>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-xl shadow-card p-6 transition-all hover:shadow-lg transform hover:-translate-y-1"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-gray-500 text-sm mb-1">总车位数</p>
+                  <h3 class="text-3xl font-bold">1,256</h3>
+                  <p class="text-gray-500 text-sm mt-2">使用率: 78%</p>
+                </div>
+                <div
+                  class="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary"
+                >
+                  <i class="fas fa-square text-xl"> </i>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-xl shadow-card p-6 transition-all hover:shadow-lg transform hover:-translate-y-1"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-gray-500 text-sm mb-1">今日停车</p>
+                  <h3 class="text-3xl font-bold">328</h3>
+                  <p class="text-danger text-sm mt-2 flex items-center">
+                    <i class="fas fa-arrow-down mr-1"> </i>
+                    12 辆 (较昨日)
+                  </p>
+                </div>
+                <div
+                  class="w-12 h-12 rounded-lg bg-warning/10 flex items-center justify-center text-warning"
+                >
+                  <i class="fas fa-car text-xl"> </i>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-xl shadow-card p-6 transition-all hover:shadow-lg transform hover:-translate-y-1"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-gray-500 text-sm mb-1">今日收入</p>
+                  <h3 class="text-3xl font-bold">¥12,580</h3>
+                  <p class="text-success text-sm mt-2 flex items-center">
+                    <i class="fas fa-arrow-up mr-1"> </i>
+                    15.2% (较昨日)
+                  </p>
+                </div>
+                <div
+                  class="w-12 h-12 rounded-lg bg-success/10 flex items-center justify-center text-success"
+                >
+                  <i class="fas fa-wallet text-xl"> </i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 最近停车场 -->
+          <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-bold">最近停车场</h3>
+              <a
+                class="text-primary text-sm hover:underline flex items-center"
+                data-page="parking-management"
+                href="javascript:void(0);"
+              >
+                查看全部
+                <i class="fas fa-chevron-right ml-1 text-xs"> </i>
+              </a>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      名称
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      类型
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      车位数
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      可用车位
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      状态
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td class="py-4 px-4">
+                      <div class="flex items-center">
+                        <img
+                          alt="停车场封面"
+                          class="w-10 h-10 rounded object-cover mr-3"
+                          src="https://design.gemcoder.com/staticResource/echoAiSystemImages/bb38a6a758774d46ddd51738320198b6.png"
+                        />
+                        <span> 中央商务区停车场 </span>
+                      </div>
+                    </td>
+                    <td class="py-4 px-4">地下</td>
+                    <td class="py-4 px-4">320</td>
+                    <td class="py-4 px-4">45</td>
+                    <td class="py-4 px-4">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-success/10 text-success"
+                      >
+                        正常运营
+                      </span>
+                    </td>
+                    <td class="py-4 px-4">
+                      <button class="text-primary hover:text-primary/80 mr-3">
+                        <i class="fas fa-edit"> </i>
+                      </button>
+                      <button class="text-gray-500 hover:text-danger">
+                        <i class="fas fa-trash"> </i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr
+                    class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td class="py-4 px-4">
+                      <div class="flex items-center">
+                        <img
+                          alt="停车场封面"
+                          class="w-10 h-10 rounded object-cover mr-3"
+                          src="https://design.gemcoder.com/staticResource/echoAiSystemImages/c1f1447e09c0db2f7742b28e39c6d5c1.png"
+                        />
+                        <span> 科技园室外停车场 </span>
+                      </div>
+                    </td>
+                    <td class="py-4 px-4">室外</td>
+                    <td class="py-4 px-4">180</td>
+                    <td class="py-4 px-4">12</td>
+                    <td class="py-4 px-4">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-success/10 text-success"
+                      >
+                        正常运营
+                      </span>
+                    </td>
+                    <td class="py-4 px-4">
+                      <button class="text-primary hover:text-primary/80 mr-3">
+                        <i class="fas fa-edit"> </i>
+                      </button>
+                      <button class="text-gray-500 hover:text-danger">
+                        <i class="fas fa-trash"> </i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr
+                    class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td class="py-4 px-4">
+                      <div class="flex items-center">
+                        <img
+                          alt="停车场封面"
+                          class="w-10 h-10 rounded object-cover mr-3"
+                          src="https://design.gemcoder.com/staticResource/echoAiSystemImages/41fc6e03abf17616995c97ee4178171d.png"
+                        />
+                        <span> 购物中心室内停车场 </span>
+                      </div>
+                    </td>
+                    <td class="py-4 px-4">室内</td>
+                    <td class="py-4 px-4">250</td>
+                    <td class="py-4 px-4">87</td>
+                    <td class="py-4 px-4">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-warning/10 text-warning"
+                      >
+                        维护中
+                      </span>
+                    </td>
+                    <td class="py-4 px-4">
+                      <button class="text-primary hover:text-primary/80 mr-3">
+                        <i class="fas fa-edit"> </i>
+                      </button>
+                      <button class="text-gray-500 hover:text-danger">
+                        <i class="fas fa-trash"> </i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- 用户管理页面 -->
+        <div class="page-content hidden" id="user-management-page">
+          <div class="mb-6">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+              用户管理
+            </h2>
+            <p class="text-gray-500">管理系统中的所有用户账户和权限</p>
+          </div>
+          <!-- 权限切换标签 -->
+          <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+            <div class="flex border-b border-gray-200 mb-6">
+              <button
+                class="user-tab py-3 px-4 font-medium text-primary border-b-2 border-primary"
+                data-role="admin"
+              >
+                管理员
+              </button>
+              <button
+                class="user-tab py-3 px-4 font-medium text-gray-500 hover:text-gray-700"
+                data-role="security"
+              >
+                保安
+              </button>
+              <button
+                class="user-tab py-3 px-4 font-medium text-gray-500 hover:text-gray-700"
+                data-role="user"
+              >
+                用户
+              </button>
+            </div>
+            <!-- 管理员列表 -->
+            <div class="user-content" id="admin-content">
+              <div class="flex items-center justify-between mb-6">
+                <div class="relative">
+                  <input
+                    class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-64 transition-all"
+                    placeholder="搜索管理员..."
+                    type="text"
+                  />
+                  <i
+                    class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  >
+                  </i>
+                </div>
+                <button
+                  class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center transition-all shadow-sm hover:shadow"
+                  id="add-admin-btn"
+                >
+                  <i class="fas fa-plus mr-2"> </i>
+                  添加管理员
+                </button>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead>
+                    <tr class="border-b border-gray-200">
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        ID
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        姓名
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        邮箱
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        电话
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        创建时间
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        状态
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        操作
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td class="py-4 px-4">#ADM001</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center">
+                          <img
+                            alt="管理员头像"
+                            class="w-10 h-10 rounded-full object-cover mr-3"
+                            src="https://design.gemcoder.com/staticResource/echoAiSystemImages/335236aa8afe068fbf6b5455fdcf016d.png"
+                          />
+                          <span> 张三 </span>
+                        </div>
+                      </td>
+                      <td class="py-4 px-4">admin@example.com</td>
+                      <td class="py-4 px-4">13800138000</td>
+                      <td class="py-4 px-4">2023-01-15</td>
+                      <td class="py-4 px-4">
+                        <span
+                          class="px-2 py-1 text-xs rounded-full bg-success/10 text-success"
+                        >
+                          启用
+                        </span>
+                      </td>
+                      <td class="py-4 px-4">
+                        <button class="text-primary hover:text-primary/80 mr-3">
+                          <i class="fas fa-edit"> </i>
+                        </button>
+                        <button class="text-gray-500 hover:text-danger">
+                          <i class="fas fa-trash"> </i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr
+                      class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td class="py-4 px-4">#ADM002</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center">
+                          <img
+                            alt="管理员头像"
+                            class="w-10 h-10 rounded-full object-cover mr-3"
+                            src="https://design.gemcoder.com/staticResource/echoAiSystemImages/f760bd83f7d7a7124f2d8acdef0ebf5d.png"
+                          />
+                          <span> 李四 </span>
+                        </div>
+                      </td>
+                      <td class="py-4 px-4">lisi@example.com</td>
+                      <td class="py-4 px-4">13900139000</td>
+                      <td class="py-4 px-4">2023-03-22</td>
+                      <td class="py-4 px-4">
+                        <span
+                          class="px-2 py-1 text-xs rounded-full bg-success/10 text-success"
+                        >
+                          启用
+                        </span>
+                      </td>
+                      <td class="py-4 px-4">
+                        <button class="text-primary hover:text-primary/80 mr-3">
+                          <i class="fas fa-edit"> </i>
+                        </button>
+                        <button class="text-gray-500 hover:text-danger">
+                          <i class="fas fa-trash"> </i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="flex items-center justify-between mt-6">
+                <p class="text-sm text-gray-500">显示 1 至 2，共 2 条</p>
+                <div class="flex space-x-1">
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    disabled
+                  >
+                    <i class="fas fa-chevron-left text-xs"> </i>
+                  </button>
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white"
+                  >
+                    1
+                  </button>
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50"
+                  >
+                    <i class="fas fa-chevron-right text-xs"> </i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- 保安列表 -->
+            <div class="user-content hidden" id="security-content">
+              <div class="flex items-center justify-between mb-6">
+                <div class="relative">
+                  <input
+                    class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-64 transition-all"
+                    placeholder="搜索保安..."
+                    type="text"
+                  />
+                  <i
+                    class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  >
+                  </i>
+                </div>
+                <button
+                  class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center transition-all shadow-sm hover:shadow"
+                >
+                  <i class="fas fa-plus mr-2"> </i>
+                  添加保安
+                </button>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead>
+                    <tr class="border-b border-gray-200">
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        ID
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        姓名
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        邮箱
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        电话
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        负责停车场
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        状态
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        操作
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td class="py-4 px-4">#SEC001</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center">
+                          <img
+                            alt="保安头像"
+                            class="w-10 h-10 rounded-full object-cover mr-3"
+                            src="https://design.gemcoder.com/staticResource/echoAiSystemImages/0719d2c7ab2e2fcb2a7dada2fecdce10.png"
+                          />
+                          <span> 王五 </span>
+                        </div>
+                      </td>
+                      <td class="py-4 px-4">wangwu@example.com</td>
+                      <td class="py-4 px-4">13700137000</td>
+                      <td class="py-4 px-4">中央商务区停车场</td>
+                      <td class="py-4 px-4">
+                        <span
+                          class="px-2 py-1 text-xs rounded-full bg-success/10 text-success"
+                        >
+                          在职
+                        </span>
+                      </td>
+                      <td class="py-4 px-4">
+                        <button class="text-primary hover:text-primary/80 mr-3">
+                          <i class="fas fa-edit"> </i>
+                        </button>
+                        <button class="text-gray-500 hover:text-danger">
+                          <i class="fas fa-trash"> </i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr
+                      class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td class="py-4 px-4">#SEC002</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center">
+                          <img
+                            alt="保安头像"
+                            class="w-10 h-10 rounded-full object-cover mr-3"
+                            src="https://design.gemcoder.com/staticResource/echoAiSystemImages/3f4626a1de2c7c6d95e3f26bbb8d1385.png"
+                          />
+                          <span> 赵六 </span>
+                        </div>
+                      </td>
+                      <td class="py-4 px-4">zhaoliu@example.com</td>
+                      <td class="py-4 px-4">13600136000</td>
+                      <td class="py-4 px-4">科技园室外停车场</td>
+                      <td class="py-4 px-4">
+                        <span
+                          class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-500"
+                        >
+                          休假
+                        </span>
+                      </td>
+                      <td class="py-4 px-4">
+                        <button class="text-primary hover:text-primary/80 mr-3">
+                          <i class="fas fa-edit"> </i>
+                        </button>
+                        <button class="text-gray-500 hover:text-danger">
+                          <i class="fas fa-trash"> </i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="flex items-center justify-between mt-6">
+                <p class="text-sm text-gray-500">显示 1 至 2，共 2 条</p>
+                <div class="flex space-x-1">
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    disabled
+                  >
+                    <i class="fas fa-chevron-left text-xs"> </i>
+                  </button>
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white"
+                  >
+                    1
+                  </button>
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50"
+                  >
+                    <i class="fas fa-chevron-right text-xs"> </i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- 用户列表 -->
+            <div class="user-content hidden" id="user-content">
+              <div class="flex items-center justify-between mb-6">
+                <div class="relative">
+                  <input
+                    class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-64 transition-all"
+                    placeholder="搜索用户..."
+                    type="text"
+                  />
+                  <i
+                    class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  >
+                  </i>
+                </div>
+                <button
+                  class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center transition-all shadow-sm hover:shadow"
+                >
+                  <i class="fas fa-plus mr-2"> </i>
+                  添加用户
+                </button>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="min-w-full">
+                  <thead>
+                    <tr class="border-b border-gray-200">
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        ID
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        姓名
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        车牌号
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        电话
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        注册时间
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        余额
+                      </th>
+                      <th
+                        class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                      >
+                        操作
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td class="py-4 px-4">#USR001</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center">
+                          <img
+                            alt="用户头像"
+                            class="w-10 h-10 rounded-full object-cover mr-3"
+                            src="https://design.gemcoder.com/staticResource/echoAiSystemImages/bae5673e2a1f90574baf0aee090dfaf2.png"
+                          />
+                          <span> 孙七 </span>
+                        </div>
+                      </td>
+                      <td class="py-4 px-4">京A12345</td>
+                      <td class="py-4 px-4">13500135000</td>
+                      <td class="py-4 px-4">2023-02-10</td>
+                      <td class="py-4 px-4">¥500.00</td>
+                      <td class="py-4 px-4">
+                        <button class="text-primary hover:text-primary/80 mr-3">
+                          <i class="fas fa-edit"> </i>
+                        </button>
+                        <button class="text-gray-500 hover:text-danger">
+                          <i class="fas fa-trash"> </i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr
+                      class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td class="py-4 px-4">#USR002</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center">
+                          <img
+                            alt="用户头像"
+                            class="w-10 h-10 rounded-full object-cover mr-3"
+                            src="https://design.gemcoder.com/staticResource/echoAiSystemImages/d5c2d9abd6420b2e1ff52b619503d193.png"
+                          />
+                          <span> 周八 </span>
+                        </div>
+                      </td>
+                      <td class="py-4 px-4">京B67890</td>
+                      <td class="py-4 px-4">13400134000</td>
+                      <td class="py-4 px-4">2023-04-18</td>
+                      <td class="py-4 px-4">¥200.00</td>
+                      <td class="py-4 px-4">
+                        <button class="text-primary hover:text-primary/80 mr-3">
+                          <i class="fas fa-edit"> </i>
+                        </button>
+                        <button class="text-gray-500 hover:text-danger">
+                          <i class="fas fa-trash"> </i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr
+                      class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                    >
+                      <td class="py-4 px-4">#USR003</td>
+                      <td class="py-4 px-4">
+                        <div class="flex items-center">
+                          <img
+                            alt="用户头像"
+                            class="w-10 h-10 rounded-full object-cover mr-3"
+                            src="https://design.gemcoder.com/staticResource/echoAiSystemImages/837ca5e3369acba8786b3160a1d7f11d.png"
+                          />
+                          <span> 吴九 </span>
+                        </div>
+                      </td>
+                      <td class="py-4 px-4">京C54321</td>
+                      <td class="py-4 px-4">13300133000</td>
+                      <td class="py-4 px-4">2023-05-05</td>
+                      <td class="py-4 px-4">¥800.00</td>
+                      <td class="py-4 px-4">
+                        <button class="text-primary hover:text-primary/80 mr-3">
+                          <i class="fas fa-edit"> </i>
+                        </button>
+                        <button class="text-gray-500 hover:text-danger">
+                          <i class="fas fa-trash"> </i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="flex items-center justify-between mt-6">
+                <p class="text-sm text-gray-500">显示 1 至 3，共 3 条</p>
+                <div class="flex space-x-1">
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    disabled
+                  >
+                    <i class="fas fa-chevron-left text-xs"> </i>
+                  </button>
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white"
+                  >
+                    1
+                  </button>
+                  <button
+                    class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50"
+                  >
+                    <i class="fas fa-chevron-right text-xs"> </i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 停车场管理页面 -->
+        <div class="page-content hidden" id="parking-management-page">
+          <div class="mb-6">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+              停车场管理
+            </h2>
+            <p class="text-gray-500">管理所有停车场信息，包括增删改查操作</p>
+          </div>
+          <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+            <div
+              class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4"
+            >
+              <div class="flex flex-wrap gap-3">
+                <div class="relative">
+                  <input
+                    class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-64 transition-all"
+                    placeholder="搜索停车场名称..."
+                    type="text"
+                  />
+                  <i
+                    class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  >
+                  </i>
+                </div>
+                <div class="relative">
+                  <select
+                    class="pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-48 appearance-none bg-white transition-all"
+                  >
+                    <option value>所有类型</option>
+                    <option value="underground">地下</option>
+                    <option value="indoor">室内</option>
+                    <option value="outdoor">室外</option>
+                  </select>
+                  <i
+                    class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                  >
+                  </i>
+                </div>
+                <div class="relative">
+                  <select
+                    class="pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-48 appearance-none bg-white transition-all"
+                  >
+                    <option value>所有状态</option>
+                    <option value="active">正常运营</option>
+                    <option value="maintenance">维护中</option>
+                    <option value="closed">已关闭</option>
+                  </select>
+                  <i
+                    class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                  >
+                  </i>
+                </div>
+              </div>
+              <button
+                class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center justify-center transition-all shadow-sm hover:shadow"
+                id="add-parking-btn"
+              >
+                <i class="fas fa-plus mr-2"> </i>
+                添加停车场
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      名称
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      封面
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      楼层
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      车位数
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      类型
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      状态
+                    </th>
+                    <th
+                      class="text-left py-3 px-4 font-semibold text-sm text-gray-500"
+                    >
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td class="py-4 px-4 font-medium">中央商务区停车场</td>
+                    <td class="py-4 px-4">
+                      <img
+                        alt="停车场封面"
+                        class="w-16 h-10 rounded object-cover"
+                        src="https://design.gemcoder.com/staticResource/echoAiSystemImages/5024baf2c78ae1a113fa596203ab9939.png"
+                      />
+                    </td>
+                    <td class="py-4 px-4">B1-B3</td>
+                    <td class="py-4 px-4">320</td>
+                    <td class="py-4 px-4">地下</td>
+                    <td class="py-4 px-4">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-success/10 text-success"
+                      >
+                        正常运营
+                      </span>
+                    </td>
+                    <td class="py-4 px-4">
+                      <button class="text-primary hover:text-primary/80 mr-3">
+                        <i class="fas fa-edit"> </i>
+                      </button>
+                      <button class="text-info hover:text-info/80 mr-3">
+                        <i class="fas fa-eye"> </i>
+                      </button>
+                      <button class="text-gray-500 hover:text-danger">
+                        <i class="fas fa-trash"> </i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr
+                    class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td class="py-4 px-4 font-medium">科技园室外停车场</td>
+                    <td class="py-4 px-4">
+                      <img
+                        alt="停车场封面"
+                        class="w-16 h-10 rounded object-cover"
+                        src="https://design.gemcoder.com/staticResource/echoAiSystemImages/d84608c6c711283822a91cc9a422e944.png"
+                      />
+                    </td>
+                    <td class="py-4 px-4">1层</td>
+                    <td class="py-4 px-4">180</td>
+                    <td class="py-4 px-4">室外</td>
+                    <td class="py-4 px-4">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-success/10 text-success"
+                      >
+                        正常运营
+                      </span>
+                    </td>
+                    <td class="py-4 px-4">
+                      <button class="text-primary hover:text-primary/80 mr-3">
+                        <i class="fas fa-edit"> </i>
+                      </button>
+                      <button class="text-info hover:text-info/80 mr-3">
+                        <i class="fas fa-eye"> </i>
+                      </button>
+                      <button class="text-gray-500 hover:text-danger">
+                        <i class="fas fa-trash"> </i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr
+                    class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td class="py-4 px-4 font-medium">购物中心室内停车场</td>
+                    <td class="py-4 px-4">
+                      <img
+                        alt="停车场封面"
+                        class="w-16 h-10 rounded object-cover"
+                        src="https://design.gemcoder.com/staticResource/echoAiSystemImages/511e7dc467b413a592258db969a315dd.png"
+                      />
+                    </td>
+                    <td class="py-4 px-4">B1-B2</td>
+                    <td class="py-4 px-4">250</td>
+                    <td class="py-4 px-4">室内</td>
+                    <td class="py-4 px-4">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-warning/10 text-warning"
+                      >
+                        维护中
+                      </span>
+                    </td>
+                    <td class="py-4 px-4">
+                      <button class="text-primary hover:text-primary/80 mr-3">
+                        <i class="fas fa-edit"> </i>
+                      </button>
+                      <button class="text-info hover:text-info/80 mr-3">
+                        <i class="fas fa-eye"> </i>
+                      </button>
+                      <button class="text-gray-500 hover:text-danger">
+                        <i class="fas fa-trash"> </i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr
+                    class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  >
+                    <td class="py-4 px-4 font-medium">机场航站楼停车场</td>
+                    <td class="py-4 px-4">
+                      <img
+                        alt="停车场封面"
+                        class="w-16 h-10 rounded object-cover"
+                        src="https://design.gemcoder.com/staticResource/echoAiSystemImages/28c15cf7d3bef95ab9dcec940ef03d39.png"
+                      />
+                    </td>
+                    <td class="py-4 px-4">1-3层</td>
+                    <td class="py-4 px-4">500</td>
+                    <td class="py-4 px-4">室外</td>
+                    <td class="py-4 px-4">
+                      <span
+                        class="px-2 py-1 text-xs rounded-full bg-success/10 text-success"
+                      >
+                        正常运营
+                      </span>
+                    </td>
+                    <td class="py-4 px-4">
+                      <button class="text-primary hover:text-primary/80 mr-3">
+                        <i class="fas fa-edit"> </i>
+                      </button>
+                      <button class="text-info hover:text-info/80 mr-3">
+                        <i class="fas fa-eye"> </i>
+                      </button>
+                      <button class="text-gray-500 hover:text-danger">
+                        <i class="fas fa-trash"> </i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="flex items-center justify-between mt-6">
+              <p class="text-sm text-gray-500">显示 1 至 4，共 4 条</p>
+              <div class="flex space-x-1">
+                <button
+                  class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50"
+                  disabled
+                >
+                  <i class="fas fa-chevron-left text-xs"> </i>
+                </button>
+                <button
+                  class="w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white"
+                >
+                  1
+                </button>
+                <button
+                  class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50"
+                >
+                  2
+                </button>
+                <button
+                  class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50"
+                >
+                  <i class="fas fa-chevron-right text-xs"> </i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <!-- 添加管理员模态框 -->
+    <div
+      class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4"
+      id="add-admin-modal"
+    >
+      <div
+        class="bg-white rounded-xl shadow-lg w-full max-w-md transform transition-all duration-300 scale-95 opacity-0"
+        id="modal-content"
+      >
+        <div
+          class="p-6 border-b border-gray-200 flex items-center justify-between"
+        >
+          <h3 class="text-lg font-bold">添加管理员</h3>
+          <button class="text-gray-500 hover:text-gray-700" id="close-modal">
+            <i class="fas fa-times"> </i>
+          </button>
+        </div>
+        <div class="p-6">
+          <form id="add-admin-form">
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                姓名
+              </label>
+              <input
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="请输入姓名"
+                required
+                type="text"
+              />
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                邮箱
+              </label>
+              <input
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="请输入邮箱"
+                required
+                type="email"
+              />
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                电话
+              </label>
+              <input
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="请输入电话"
+                required
+                type="tel"
+              />
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                密码
+              </label>
+              <input
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="请输入密码"
+                required
+                type="password"
+              />
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+              <button
+                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                id="cancel-add-admin"
+                type="button"
+              >
+                取消
+              </button>
+              <button
+                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                type="submit"
+              >
+                保存
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!-- 添加停车场模态框 -->
+    <div
+      class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4"
+      id="add-parking-modal"
+    >
+      <div
+        class="bg-white rounded-xl shadow-lg w-full max-w-2xl transform transition-all duration-300 scale-95 opacity-0"
+        id="parking-modal-content"
+      >
+        <div
+          class="p-6 border-b border-gray-200 flex items-center justify-between"
+        >
+          <h3 class="text-lg font-bold">添加停车场</h3>
+          <button
+            class="text-gray-500 hover:text-gray-700"
+            id="close-parking-modal"
+          >
+            <i class="fas fa-times"> </i>
+          </button>
+        </div>
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+          <form id="add-parking-form">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  停车场名称
+                </label>
+                <input
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  placeholder="请输入停车场名称"
+                  required
+                  type="text"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  停车场类型
+                </label>
+                <select
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  required
+                >
+                  <option value>请选择类型</option>
+                  <option value="underground">地下</option>
+                  <option value="indoor">室内</option>
+                  <option value="outdoor">室外</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  停车场楼层
+                </label>
+                <input
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  placeholder="例如：B1-B3或1-3层"
+                  required
+                  type="text"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  总车位数
+                </label>
+                <input
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  placeholder="请输入总车位数"
+                  required
+                  type="number"
+                />
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                停车场封面
+              </label>
+              <div
+                class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer"
+              >
+                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2">
+                </i>
+                <p class="text-sm text-gray-500">
+                  点击上传图片或拖拽文件至此处
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                  支持 JPG、PNG 格式，最大 5MB
+                </p>
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                配套设施
+              </label>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <label
+                  class="flex items-center space-x-2 p-2 border border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                >
+                  <input
+                    class="w-4 h-4 text-primary focus:ring-primary/30 rounded"
+                    type="checkbox"
+                  />
+                  <span> 充电桩 </span>
+                </label>
+                <label
+                  class="flex items-center space-x-2 p-2 border border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                >
+                  <input
+                    class="w-4 h-4 text-primary focus:ring-primary/30 rounded"
+                    type="checkbox"
+                  />
+                  <span> 监控 </span>
+                </label>
+                <label
+                  class="flex items-center space-x-2 p-2 border border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                >
+                  <input
+                    class="w-4 h-4 text-primary focus:ring-primary/30 rounded"
+                    type="checkbox"
+                  />
+                  <span> 电梯 </span>
+                </label>
+                <label
+                  class="flex items-center space-x-2 p-2 border border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                >
+                  <input
+                    class="w-4 h-4 text-primary focus:ring-primary/30 rounded"
+                    type="checkbox"
+                  />
+                  <span> 卫生间 </span>
+                </label>
+                <label
+                  class="flex items-center space-x-2 p-2 border border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                >
+                  <input
+                    class="w-4 h-4 text-primary focus:ring-primary/30 rounded"
+                    type="checkbox"
+                  />
+                  <span> 便利店 </span>
+                </label>
+                <label
+                  class="flex items-center space-x-2 p-2 border border-gray-200 rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                >
+                  <input
+                    class="w-4 h-4 text-primary focus:ring-primary/30 rounded"
+                    type="checkbox"
+                  />
+                  <span> 洗车服务 </span>
+                </label>
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                收费标准
+              </label>
+              <textarea
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="请输入收费标准，例如：首小时10元，后续每小时5元，封顶50元/天"
+                rows="3"
+              >
+              </textarea>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                停车场详情
+              </label>
+              <textarea
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                placeholder="请输入停车场详细描述信息"
+                rows="4"
+              >
+              </textarea>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+              <button
+                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                id="cancel-add-parking"
+                type="button"
+              >
+                取消
+              </button>
+              <button
+                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                type="submit"
+              >
+                保存
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script>
+      // 页面加载时初始化渲染
+      document.addEventListener('DOMContentLoaded', function () {
+        // 初始化轮播图
+        initCarousel();
+
+        // 初始化导航切换
+        initNavigation();
+
+        // 初始化用户管理标签切换
+        initUserTabs();
+
+        // 初始化模态框
+        initModals();
+      });
+
+      // 轮播图初始化
+      function initCarousel() {
+        var carousel = document.getElementById('carousel');
+        var carouselInner = carousel.querySelector('.carousel-inner');
+        var carouselItems = carousel.querySelectorAll('.carousel-item');
+        var prevBtn = document.getElementById('prevBtn');
+        var nextBtn = document.getElementById('nextBtn');
+        var indicators = carousel.querySelectorAll('.carousel-indicator');
+        var currentIndex = 0;
+        var itemCount = carouselItems.length;
+        var slideInterval;
+
+        // 设置轮播图自动播放
+        function startSlideInterval() {
+          slideInterval = setInterval(function () {
+            currentIndex = (currentIndex + 1) % itemCount;
+            updateCarousel();
+          }, 3000);
+        }
+
+        // 更新轮播图显示
+        function updateCarousel() {
+          // 移动轮播内容
+          carouselInner.style.transform = "translateX(-".concat(currentIndex * 100, "%)");
+
+          // 更新指示器状态
+          indicators.forEach(function (indicator, index) {
+            if (index === currentIndex) {
+              indicator.classList.add('opacity-100');
+              indicator.classList.remove('opacity-50');
+            } else {
+              indicator.classList.add('opacity-50');
+              indicator.classList.remove('opacity-100');
+            }
+          });
+        }
+
+        // 上一张
+        prevBtn.addEventListener('click', function () {
+          clearInterval(slideInterval);
+          currentIndex = (currentIndex - 1 + itemCount) % itemCount;
+          updateCarousel();
+          startSlideInterval();
+        });
+
+        // 下一张
+        nextBtn.addEventListener('click', function () {
+          clearInterval(slideInterval);
+          currentIndex = (currentIndex + 1) % itemCount;
+          updateCarousel();
+          startSlideInterval();
+        });
+
+        // 点击指示器切换
+        indicators.forEach(function (indicator, index) {
+          indicator.addEventListener('click', function () {
+            clearInterval(slideInterval);
+            currentIndex = index;
+            updateCarousel();
+            startSlideInterval();
+          });
+        });
+
+        // 鼠标悬停时暂停轮播
+        carousel.addEventListener('mouseenter', function () {
+          clearInterval(slideInterval);
+        });
+
+        // 鼠标离开时恢复轮播
+        carousel.addEventListener('mouseleave', function () {
+          startSlideInterval();
+        });
+
+        // 开始自动轮播
+        startSlideInterval();
+      }
+
+      // 导航切换初始化
+      function initNavigation() {
+        var navLinks = document.querySelectorAll('.nav-link');
+        var pageContents = document.querySelectorAll('.page-content');
+        var toggleSidebarBtn = document.getElementById('toggleSidebar');
+        var closeSidebarBtn = document.getElementById('closeSidebar');
+        var sidebar = document.getElementById('sidebar');
+
+        // 导航链接点击事件
+        navLinks.forEach(function (link) {
+          link.addEventListener('click', function (e) {
+            var targetPage = link.getAttribute('data-page');
+
+            // 更新导航链接激活状态
+            navLinks.forEach(function (l) {
+              l.classList.remove('sidebar-item-active');
+              l.classList.add('hover:bg-gray-100');
+            });
+            link.classList.add('sidebar-item-active');
+            link.classList.remove('hover:bg-gray-100');
+
+            // 显示对应页面内容
+            pageContents.forEach(function (page) {
+              page.classList.add('hidden');
+            });
+            document.getElementById("".concat(targetPage, "-page")).classList.remove('hidden');
+
+            // 在移动设备上点击导航后关闭侧边栏
+            if (window.innerWidth < 768) {
+              sidebar.classList.add('-translate-x-full');
+            }
+          });
+        });
+
+        // 切换侧边栏显示/隐藏
+        toggleSidebarBtn.addEventListener('click', function () {
+          sidebar.classList.toggle('-translate-x-full');
+        });
+        closeSidebarBtn.addEventListener('click', function () {
+          sidebar.classList.add('-translate-x-full');
+        });
+
+        // 页面跳转链接
+        var pageJumpLinks = document.querySelectorAll('[data-page]');
+        pageJumpLinks.forEach(function (link) {
+          if (!link.classList.contains('nav-link')) {
+            link.addEventListener('click', function (e) {
+              e.preventDefault();
+              var targetPage = link.getAttribute('data-page');
+
+              // 找到对应的导航链接并触发点击
+              var targetNavLink = document.querySelector(".nav-link[data-page=\"".concat(targetPage, "\"]"));
+              if (targetNavLink) {
+                targetNavLink.click();
+              }
+            });
+          }
+        });
+      }
+
+      // 用户管理标签切换初始化
+      function initUserTabs() {
+        var userTabs = document.querySelectorAll('.user-tab');
+        var userContents = document.querySelectorAll('.user-content');
+        userTabs.forEach(function (tab) {
+          tab.addEventListener('click', function () {
+            var role = tab.getAttribute('data-role');
+
+            // 更新标签激活状态
+            userTabs.forEach(function (t) {
+              t.classList.remove('text-primary', 'border-b-2', 'border-primary');
+              t.classList.add('text-gray-500');
+            });
+            tab.classList.add('text-primary', 'border-b-2', 'border-primary');
+            tab.classList.remove('text-gray-500');
+
+            // 显示对应内容
+            userContents.forEach(function (content) {
+              content.classList.add('hidden');
+            });
+            document.getElementById("".concat(role, "-content")).classList.remove('hidden');
+          });
+        });
+      }
+
+      // 模态框初始化
+      function initModals() {
+        // 添加管理员模态框
+        var addAdminBtn = document.getElementById('add-admin-btn');
+        var addAdminModal = document.getElementById('add-admin-modal');
+        var modalContent = document.getElementById('modal-content');
+        var closeModalBtn = document.getElementById('close-modal');
+        var cancelAddAdminBtn = document.getElementById('cancel-add-admin');
+        var addAdminForm = document.getElementById('add-admin-form');
+
+        // 添加停车场模态框
+        var addParkingBtn = document.getElementById('add-parking-btn');
+        var addParkingModal = document.getElementById('add-parking-modal');
+        var parkingModalContent = document.getElementById('parking-modal-content');
+        var closeParkingModalBtn = document.getElementById('close-parking-modal');
+        var cancelAddParkingBtn = document.getElementById('cancel-add-parking');
+        var addParkingForm = document.getElementById('add-parking-form');
+
+        // 打开模态框动画
+        function openModal(modal, content) {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          setTimeout(function () {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+          }, 10);
+        }
+
+        // 关闭模态框动画
+        function closeModal(modal, content) {
+          content.classList.remove('scale-100', 'opacity-100');
+          content.classList.add('scale-95', 'opacity-0');
+          setTimeout(function () {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+          }, 300);
+        }
+
+        // 添加管理员模态框事件
+        if (addAdminBtn) {
+          addAdminBtn.addEventListener('click', function () {
+            openModal(addAdminModal, modalContent);
+          });
+        }
+        if (closeModalBtn) {
+          closeModalBtn.addEventListener('click', function () {
+            closeModal(addAdminModal, modalContent);
+          });
+        }
+        if (cancelAddAdminBtn) {
+          cancelAddAdminBtn.addEventListener('click', function () {
+            closeModal(addAdminModal, modalContent);
+          });
+        }
+        if (addAdminForm) {
+          addAdminForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            // 这里添加表单提交逻辑
+            alert('管理员添加成功！');
+            closeModal(addAdminModal, modalContent);
+            addAdminForm.reset();
+          });
+        }
+
+        // 添加停车场模态框事件
+        if (addParkingBtn) {
+          addParkingBtn.addEventListener('click', function () {
+            openModal(addParkingModal, parkingModalContent);
+          });
+        }
+        if (closeParkingModalBtn) {
+          closeParkingModalBtn.addEventListener('click', function () {
+            closeModal(addParkingModal, parkingModalContent);
+          });
+        }
+        if (cancelAddParkingBtn) {
+          cancelAddParkingBtn.addEventListener('click', function () {
+            closeModal(addParkingModal, parkingModalContent);
+          });
+        }
+        if (addParkingForm) {
+          addParkingForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            // 这里添加表单提交逻辑
+            alert('停车场添加成功！');
+            closeModal(addParkingModal, parkingModalContent);
+            addParkingForm.reset();
+          });
+        }
+
+        // 点击模态框背景关闭
+        var modals = document.querySelectorAll('.fixed.inset-0.bg-black\\/50');
+        modals.forEach(function (modal) {
+          modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+              var content = modal.querySelector('div[class*="scale-"]');
+              if (content) {
+                closeModal(modal, content);
+              }
+            }
+          });
+        });
+      }
+      <!-- 车位信息页面 -->
+          <div class="page-content hidden" id="space-list-page">
+           <div class="mb-6">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+             车位信息
+            </h2>
+            <p class="text-gray-500">
+             管理所有车位信息，支持新增、编辑、删除和查询
+            </p>
+           </div>
+           <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+             <div class="flex flex-wrap gap-3">
+              <div class="relative">
+               <input class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-64 transition-all" placeholder="搜索车位编号或名称..." type="text"/>
+               <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+               </i>
+              </div>
+              <div class="relative">
+               <select class="pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-48 appearance-none bg-white transition-all">
+                <option value="">
+                 所有类型
+                </option>
+                <option value="standard">
+                 标准车位
+                </option>
+                <option value="vip">
+                 VIP车位
+                </option>
+                <option value="charging">
+                 充电车位
+                </option>
+                <option value="disabled">
+                 残疾人车位
+                </option>
+               </select>
+               <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+               </i>
+              </div>
+              <div class="relative">
+               <select class="pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-48 appearance-none bg-white transition-all">
+                <option value="">
+                 所有状态
+                </option>
+                <option value="free">
+                 空闲
+                </option>
+                <option value="occupied">
+                 占用
+                </option>
+                <option value="maintenance">
+                 维护中
+                </option>
+               </select>
+               <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+               </i>
+              </div>
+             </div>
+             <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center justify-center transition-all shadow-sm hover:shadow" id="add-space-btn">
+              <i class="fas fa-plus mr-2">
+              </i>
+              添加车位
+             </button>
+            </div>
+            <div class="overflow-x-auto">
+             <table class="min-w-full">
+              <thead>
+               <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位编号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位名称
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位类型
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位位置
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 小时价格
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 状态
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 操作
+                </th>
+               </tr>
+              </thead>
+              <tbody>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 SP-001
+                </td>
+                <td class="py-4 px-4">
+                 A区01号车位
+                </td>
+                <td class="py-4 px-4">
+                 标准车位
+                </td>
+                <td class="py-4 px-4">
+                 A区1排1列
+                </td>
+                <td class="py-4 px-4">
+                 ¥10.00
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">
+                  空闲
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-space-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-space-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 SP-002
+                </td>
+                <td class="py-4 px-4">
+                 A区02号车位
+                </td>
+                <td class="py-4 px-4">
+                 充电车位
+                </td>
+                <td class="py-4 px-4">
+                 A区1排2列
+                </td>
+                <td class="py-4 px-4">
+                 ¥15.00
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-warning/10 text-warning">
+                  占用
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-space-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-space-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 SP-003
+                </td>
+                <td class="py-4 px-4">
+                 B区01号车位
+                </td>
+                <td class="py-4 px-4">
+                 VIP车位
+                </td>
+                <td class="py-4 px-4">
+                 B区1排1列
+                </td>
+                <td class="py-4 px-4">
+                 ¥20.00
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-500">
+                  维护中
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-space-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-space-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+              </tbody>
+             </table>
+            </div>
+            <div class="flex items-center justify-between mt-6">
+             <p class="text-sm text-gray-500">
+              显示 1 至 3，共 3 条
+             </p>
+             <div class="flex space-x-1">
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50" disabled="">
+               <i class="fas fa-chevron-left text-xs">
+               </i>
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white">
+               1
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50">
+               <i class="fas fa-chevron-right text-xs">
+               </i>
+              </button>
+             </div>
+            </div>
+           </div>
+          </div>
+
+          <!-- 车位类型页面 -->
+          <div class="page-content hidden" id="space-type-page">
+           <div class="mb-6">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+             车位类型
+            </h2>
+            <p class="text-gray-500">
+             管理车位类型信息，支持新增、编辑、删除和查询
+            </p>
+           </div>
+           <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+             <div class="relative">
+              <input class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-64 transition-all" placeholder="搜索车位类型..." type="text"/>
+              <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              </i>
+             </div>
+             <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center justify-center transition-all shadow-sm hover:shadow" id="add-type-btn">
+              <i class="fas fa-plus mr-2">
+              </i>
+              添加类型
+             </button>
+            </div>
+            <div class="overflow-x-auto">
+             <table class="min-w-full">
+              <thead>
+               <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 序号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 类型名称
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 描述
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 默认价格(小时)
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 创建时间
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 操作
+                </th>
+               </tr>
+              </thead>
+              <tbody>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 1
+                </td>
+                <td class="py-4 px-4">
+                 标准车位
+                </td>
+                <td class="py-4 px-4">
+                 普通标准车位，适用于大部分小型车辆
+                </td>
+                <td class="py-4 px-4">
+                 ¥10.00
+                </td>
+                <td class="py-4 px-4">
+                 2023-01-15
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-type-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-type-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 2
+                </td>
+                <td class="py-4 px-4">
+                 VIP车位
+                </td>
+                <td class="py-4 px-4">
+                 高级VIP车位，位置优越，空间更大
+                </td>
+                <td class="py-4 px-4">
+                 ¥20.00
+                </td>
+                <td class="py-4 px-4">
+                 2023-01-15
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-type-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-type-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 3
+                </td>
+                <td class="py-4 px-4">
+                 充电车位
+                </td>
+                <td class="py-4 px-4">
+                 配备充电桩的车位，支持电动汽车充电
+                </td>
+                <td class="py-4 px-4">
+                 ¥15.00
+                </td>
+                <td class="py-4 px-4">
+                 2023-02-20
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-type-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-type-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 4
+                </td>
+                <td class="py-4 px-4">
+                 残疾人车位
+                </td>
+                <td class="py-4 px-4">
+                 专为残疾人设计的无障碍车位，位置便利
+                </td>
+                <td class="py-4 px-4">
+                 ¥10.00
+                </td>
+                <td class="py-4 px-4">
+                 2023-02-20
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-type-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-type-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+              </tbody>
+             </table>
+            </div>
+            <div class="flex items-center justify-between mt-6">
+             <p class="text-sm text-gray-500">
+              显示 1 至 4，共 4 条
+             </p>
+             <div class="flex space-x-1">
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50" disabled="">
+               <i class="fas fa-chevron-left text-xs">
+               </i>
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white">
+               1
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50">
+               <i class="fas fa-chevron-right text-xs">
+               </i>
+              </button>
+             </div>
+            </div>
+           </div>
+          </div>
+
+          <!-- 车位预约页面 -->
+          <div class="page-content hidden" id="space-reservation-page">
+           <div class="mb-6">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+             车位预约
+            </h2>
+            <p class="text-gray-500">
+             管理车位预约信息，支持新增、编辑、删除预约
+            </p>
+           </div>
+           <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+             <div class="flex flex-wrap gap-3">
+              <div class="relative">
+               <input class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-64 transition-all" placeholder="搜索车位编号或车牌号..." type="text"/>
+               <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+               </i>
+              </div>
+              <div class="relative">
+               <select class="pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-48 appearance-none bg-white transition-all">
+                <option value="">
+                 所有状态
+                </option>
+                <option value="pending">
+                 待确认
+                </option>
+                <option value="confirmed">
+                 已确认
+                </option>
+                <option value="cancelled">
+                 已取消
+                </option>
+                <option value="completed">
+                 已完成
+                </option>
+               </select>
+               <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+               </i>
+              </div>
+             </div>
+             <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg flex items-center justify-center transition-all shadow-sm hover:shadow" id="add-reservation-btn">
+              <i class="fas fa-plus mr-2">
+              </i>
+              新增预约
+             </button>
+            </div>
+            <div class="overflow-x-auto">
+             <table class="min-w-full">
+              <thead>
+               <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 序号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位编号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位位置
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位名称
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位类型
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车牌号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 预约时间
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 更新时间
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 状态
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 操作
+                </th>
+               </tr>
+              </thead>
+              <tbody>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 1
+                </td>
+                <td class="py-4 px-4">
+                 SP-002
+                </td>
+                <td class="py-4 px-4">
+                 A区1排2列
+                </td>
+                <td class="py-4 px-4">
+                 A区02号车位
+                </td>
+                <td class="py-4 px-4">
+                 充电车位
+                </td>
+                <td class="py-4 px-4">
+                 京A12345
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 14:30
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 10:20
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">
+                  已确认
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-reservation-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-warning hover:text-warning/80 mr-3 cancel-reservation-btn">
+                  <i class="fas fa-times-circle">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-reservation-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 2
+                </td>
+                <td class="py-4 px-4">
+                 SP-005
+                </td>
+                <td class="py-4 px-4">
+                 A区2排1列
+                </td>
+                <td class="py-4 px-4">
+                 A区05号车位
+                </td>
+                <td class="py-4 px-4">
+                 标准车位
+                </td>
+                <td class="py-4 px-4">
+                 京B67890
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 16:00
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 09:15
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-warning/10 text-warning">
+                  待确认
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-reservation-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-warning hover:text-warning/80 mr-3 cancel-reservation-btn">
+                  <i class="fas fa-times-circle">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-reservation-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 3
+                </td>
+                <td class="py-4 px-4">
+                 SP-010
+                </td>
+                <td class="py-4 px-4">
+                 B区1排2列
+                </td>
+                <td class="py-4 px-4">
+                 B区10号车位
+                </td>
+                <td class="py-4 px-4">
+                 VIP车位
+                </td>
+                <td class="py-4 px-4">
+                 京C54321
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 10:00
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-14 16:40
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-500">
+                  已取消
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 edit-reservation-btn">
+                  <i class="fas fa-edit">
+                  </i>
+                 </button>
+                 <button class="text-warning hover:text-warning/80 mr-3 cancel-reservation-btn" disabled>
+                  <i class="fas fa-times-circle">
+                  </i>
+                 </button>
+                 <button class="text-gray-500 hover:text-danger delete-reservation-btn">
+                  <i class="fas fa-trash">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+              </tbody>
+             </table>
+            </div>
+            <div class="flex items-center justify-between mt-6">
+             <p class="text-sm text-gray-500">
+              显示 1 至 3，共 3 条
+             </p>
+             <div class="flex space-x-1">
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50" disabled="">
+               <i class="fas fa-chevron-left text-xs">
+               </i>
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white">
+               1
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50">
+               <i class="fas fa-chevron-right text-xs">
+               </i>
+              </button>
+             </div>
+            </div>
+           </div>
+          </div>
+
+          <!-- 车辆入场页面 -->
+          <div class="page-content hidden" id="vehicle-entry-page">
+           <div class="mb-6">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+             车辆入场
+            </h2>
+            <p class="text-gray-500">
+             管理车辆入场记录，处理入场审核
+            </p>
+           </div>
+           <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+             <div class="flex flex-wrap gap-3">
+              <div class="relative">
+               <input class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-64 transition-all" placeholder="搜索车位编号或车牌号..." type="text"/>
+               <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+               </i>
+              </div>
+              <div class="relative">
+               <select class="pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-48 appearance-none bg-white transition-all">
+                <option value="">
+                 所有审核状态
+                </option>
+                <option value="pending">
+                 待审核
+                </option>
+                <option value="approved">
+                 通过
+                </option>
+                <option value="rejected">
+                 拒绝
+                </option>
+               </select>
+               <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+               </i>
+              </div>
+              <div class="relative">
+               <select class="pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-48 appearance-none bg-white transition-all">
+                <option value="">
+                 所有离场状态
+                </option>
+                <option value="in">
+                 未离场
+                </option>
+                <option value="out">
+                 已离场
+                </option>
+               </select>
+               <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+               </i>
+              </div>
+             </div>
+            </div>
+            <div class="overflow-x-auto">
+             <table class="min-w-full">
+              <thead>
+               <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 序号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位编号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位位置
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位名称
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 小时价格
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 用户账号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 用户姓名
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车牌号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 入场时间
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 离场状态
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 审核状态
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 操作
+                </th>
+               </tr>
+              </thead>
+              <tbody>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 1
+                </td>
+                <td class="py-4 px-4">
+                 SP-002
+                </td>
+                <td class="py-4 px-4">
+                 A区1排2列
+                </td>
+                <td class="py-4 px-4">
+                 A区02号车位
+                </td>
+                <td class="py-4 px-4">
+                 ¥15.00
+                </td>
+                <td class="py-4 px-4">
+                 user001
+                </td>
+                <td class="py-4 px-4">
+                 孙七
+                </td>
+                <td class="py-4 px-4">
+                 京A12345
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 14:35
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-warning/10 text-warning">
+                  未离场
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">
+                  通过
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-info hover:text-info/80 mr-3 detail-entry-btn">
+                  <i class="fas fa-eye">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 2
+                </td>
+                <td class="py-4 px-4">
+                 SP-005
+                </td>
+                <td class="py-4 px-4">
+                 A区2排1列
+                </td>
+                <td class="py-4 px-4">
+                 A区05号车位
+                </td>
+                <td class="py-4 px-4">
+                 ¥10.00
+                </td>
+                <td class="py-4 px-4">
+                 user002
+                </td>
+                <td class="py-4 px-4">
+                 周八
+                </td>
+                <td class="py-4 px-4">
+                 京B67890
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 15:40
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-warning/10 text-warning">
+                  未离场
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-gray-200 text-gray-500">
+                  待审核
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-success hover:text-success/80 mr-3 approve-entry-btn">
+                  <i class="fas fa-check">
+                  </i>
+                 </button>
+                 <button class="text-danger hover:text-danger/80 mr-3 reject-entry-btn">
+                  <i class="fas fa-times">
+                  </i>
+                 </button>
+                 <button class="text-info hover:text-info/80 detail-entry-btn">
+                  <i class="fas fa-eye">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 3
+                </td>
+                <td class="py-4 px-4">
+                 SP-010
+                </td>
+                <td class="py-4 px-4">
+                 B区1排2列
+                </td>
+                <td class="py-4 px-4">
+                 B区10号车位
+                </td>
+                <td class="py-4 px-4">
+                 ¥20.00
+                </td>
+                <td class="py-4 px-4">
+                 user003
+                </td>
+                <td class="py-4 px-4">
+                 吴九
+                </td>
+                <td class="py-4 px-4">
+                 京C54321
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 10:15
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">
+                  已离场
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">
+                  通过
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-info hover:text-info/80 detail-entry-btn">
+                  <i class="fas fa-eye">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+              </tbody>
+             </table>
+            </div>
+            <div class="flex items-center justify-between mt-6">
+             <p class="text-sm text-gray-500">
+              显示 1 至 3，共 3 条
+             </p>
+             <div class="flex space-x-1">
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50" disabled="">
+               <i class="fas fa-chevron-left text-xs">
+               </i>
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white">
+               1
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50">
+               <i class="fas fa-chevron-right text-xs">
+               </i>
+              </button>
+             </div>
+            </div>
+           </div>
+          </div>
+
+          <!-- 车辆离场页面 -->
+          <div class="page-content hidden" id="vehicle-exit-page">
+           <div class="mb-6">
+            <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-dark">
+             车辆离场
+            </h2>
+            <p class="text-gray-500">
+             管理车辆离场记录，计算停车费用
+            </p>
+           </div>
+           <div class="bg-white rounded-xl shadow-card p-6 mb-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+             <div class="flex flex-wrap gap-3">
+              <div class="relative">
+               <input class="pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-64 transition-all" placeholder="搜索车位编号或车牌号..." type="text"/>
+               <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+               </i>
+              </div>
+              <div class="relative">
+               <select class="pl-4 pr-10 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary w-full md:w-48 appearance-none bg-white transition-all">
+                <option value="">
+                 所有支付状态
+                </option>
+                <option value="paid">
+                 已支付
+                </option>
+                <option value="unpaid">
+                 未支付
+                </option>
+               </select>
+               <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+               </i>
+              </div>
+             </div>
+            </div>
+            <div class="overflow-x-auto">
+             <table class="min-w-full">
+              <thead>
+               <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 序号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位编号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位位置
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车位名称
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 入场时间
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 离场时间
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 停车时长(小时)
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 小时价格
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 停车费
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 车牌号
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 支付状态
+                </th>
+                <th class="text-left py-3 px-4 font-semibold text-sm text-gray-500">
+                 操作
+                </th>
+               </tr>
+              </thead>
+              <tbody>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 1
+                </td>
+                <td class="py-4 px-4">
+                 SP-010
+                </td>
+                <td class="py-4 px-4">
+                 B区1排2列
+                </td>
+                <td class="py-4 px-4">
+                 B区10号车位
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 10:15
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 14:25
+                </td>
+                <td class="py-4 px-4">
+                 4.17
+                </td>
+                <td class="py-4 px-4">
+                 ¥20.00
+                </td>
+                <td class="py-4 px-4 font-medium">
+                 ¥83.40
+                </td>
+                <td class="py-4 px-4">
+                 京C54321
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">
+                  已支付
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-info hover:text-info/80 detail-exit-btn">
+                  <i class="fas fa-eye">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 2
+                </td>
+                <td class="py-4 px-4">
+                 SP-008
+                </td>
+                <td class="py-4 px-4">
+                 B区1排1列
+                </td>
+                <td class="py-4 px-4">
+                 B区08号车位
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 09:30
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 16:10
+                </td>
+                <td class="py-4 px-4">
+                 6.67
+                </td>
+                <td class="py-4 px-4">
+                 ¥10.00
+                </td>
+                <td class="py-4 px-4 font-medium">
+                 ¥66.70
+                </td>
+                <td class="py-4 px-4">
+                 京D98765
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">
+                  已支付
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-info hover:text-info/80 detail-exit-btn">
+                  <i class="fas fa-eye">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+               <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="py-4 px-4">
+                 3
+                </td>
+                <td class="py-4 px-4">
+                 SP-015
+                </td>
+                <td class="py-4 px-4">
+                 C区2排3列
+                </td>
+                <td class="py-4 px-4">
+                 C区15号车位
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 13:45
+                </td>
+                <td class="py-4 px-4">
+                 2023-06-15 17:20
+                </td>
+                <td class="py-4 px-4">
+                 3.58
+                </td>
+                <td class="py-4 px-4">
+                 ¥15.00
+                </td>
+                <td class="py-4 px-4 font-medium">
+                 ¥53.70
+                </td>
+                <td class="py-4 px-4">
+                 京E56789
+                </td>
+                <td class="py-4 px-4">
+                 <span class="px-2 py-1 text-xs rounded-full bg-warning/10 text-warning">
+                  未支付
+                 </span>
+                </td>
+                <td class="py-4 px-4">
+                 <button class="text-primary hover:text-primary/80 mr-3 pay-exit-btn">
+                  <i class="fas fa-credit-card">
+                  </i>
+                 </button>
+                 <button class="text-info hover:text-info/80 detail-exit-btn">
+                  <i class="fas fa-eye">
+                  </i>
+                 </button>
+                </td>
+               </tr>
+              </tbody>
+             </table>
+            </div>
+            <div class="flex items-center justify-between mt-6">
+             <p class="text-sm text-gray-500">
+              显示 1 至 3，共 3 条
+             </p>
+             <div class="flex space-x-1">
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-400 bg-white hover:bg-gray-50 disabled:opacity-50" disabled="">
+               <i class="fas fa-chevron-left text-xs">
+               </i>
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-primary bg-primary text-white">
+               1
+              </button>
+              <button class="w-9 h-9 flex items-center justify-center rounded border border-gray-200 text-gray-500 bg-white hover:bg-gray-50">
+               <i class="fas fa-chevron-right text-xs">
+               </i>
+              </button>
+             </div>
+            </div>
+           </div>
+          </div>
+
+          <!-- 添加车位模态框 -->
+          <div class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4" id="add-space-modal">
+           <div class="bg-white rounded-xl shadow-lg w-full max-w-2xl transform transition-all duration-300 scale-95 opacity-0" id="space-modal-content">
+            <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+             <h3 class="text-lg font-bold">
+              添加车位
+             </h3>
+             <button class="text-gray-500 hover:text-gray-700" id="close-space-modal">
+              <i class="fas fa-times">
+              </i>
+             </button>
+            </div>
+            <div class="p-6 max-h-[70vh] overflow-y-auto">
+             <form id="add-space-form">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+               <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                 车位编号 <span class="text-danger">*</span>
+                </label>
+                <input class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="请输入车位编号" required="" type="text"/>
+               </div>
+               <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                 车位名称 <span class="text-danger">*</span>
+                </label>
+                <input class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="请输入车位名称" required="" type="text"/>
+               </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+               <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                 车位类型 <span class="text-danger">*</span>
+                </label>
+                <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" required="">
+                 <option value="">
+                  请选择车位类型
+                 </option>
+                 <option value="standard">
+                  标准车位
+                 </option>
+                 <option value="vip">
+                  VIP车位
+                 </option>
+                 <option value="charging">
+                  充电车位
+                 </option>
+                 <option value="disabled">
+                  残疾人车位
+                 </option>
+                </select>
+               </div>
+               <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                 车位位置 <span class="text-danger">*</span>
+                </label>
+                <input class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="例如：A区1排1列" required="" type="text"/>
+               </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+               <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                 小时价格 <span class="text-danger">*</span>
+                </label>
+                <input class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="请输入小时价格" required="" type="number" step="0.01" min="0"/>
+               </div>
+               <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                 车位状态 <span class="text-danger">*</span>
+                </label>
+                <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" required="">
+                 <option value="free">
+                  空闲
+                 </option>
+                 <option value="occupied">
+                  占用
+                 </option>
+                 <option value="maintenance">
+                  维护中
+                 </option>
+                </select>
+               </div>
+              </div>
+              <div class="mb-4">
+               <label class="block text-sm font-medium text-gray-700 mb-1">
+                收费标准
+               </label>
+               <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="请输入收费标准，例如：首小时10元，后续每小时5元，封顶50元/天" rows="3">
+               </textarea>
+              </div>
+              <div class="mb-4">
+               <label class="block text-sm font-medium text-gray-700 mb-1">
+                车位图片（支持多个图片）
+               </label>
+               <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
+                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2">
+                </i>
+                <p class="text-sm text-gray-500">
+                 点击上传图片或拖拽文件至此处
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                 支持 JPG、PNG 格式，最大 5MB，可上传多张
+                </p>
+               </div>
+              </div>
+              <div class="mb-4">
+               <label class="block text-sm font-medium text-gray-700 mb-1">
+                车位详情
+               </label>
+               <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" placeholder="请输入车位详细描述信息" rows="4">
+               </textarea>
+              </div>
+              <div class="flex justify-end space-x-3 mt-6">
+               <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors" id="cancel-add-space" type="button">
+                取消
+               </button>
+               <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors" type="submit">
+                保存
+               </button>
+              </div>
+             </form>
+            </div>
+           </div>
+          </div>
+    </script>
+  </body>
+</html>

@@ -31,7 +31,6 @@ async def get_users(page: int = 1, size: int = 10, role: str = None, current_use
     offset = (page - 1) * size
     query = db.query(User)
     if role:
-        print("当前请求角色：", role)
         query = query.filter(User.role == role)
     total = query.count()  # 增加总数统计
     users = query.offset(offset).limit(size).all()

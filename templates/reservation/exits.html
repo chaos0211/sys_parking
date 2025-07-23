@@ -1,0 +1,51 @@
+
+
+{% extends "base.html" %}
+
+{% block title %}车辆离场{% endblock %}
+
+{% block content %}
+<div class="p-6">
+  <h2 class="text-2xl font-bold mb-4">车辆离场管理</h2>
+
+  <div class="mb-4 space-x-2">
+    <button id="viewExitBtn" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">
+      <i class="fas fa-eye mr-1"></i> 详情
+    </button>
+    <button id="deleteExitBtn" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
+      <i class="fas fa-trash mr-1"></i> 删除
+    </button>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 border">选择</th>
+          <th class="px-4 py-3 border">序号</th>
+          <th class="px-4 py-3 border">车位编号</th>
+          <th class="px-4 py-3 border">车位位置</th>
+          <th class="px-4 py-3 border">车位名称</th>
+          <th class="px-4 py-3 border">入场时间</th>
+          <th class="px-4 py-3 border">离场时间</th>
+          <th class="px-4 py-3 border">停车时长（小时）</th>
+          <th class="px-4 py-3 border">小时价格</th>
+          <th class="px-4 py-3 border">停车费</th>
+          <th class="px-4 py-3 border">用户账号</th>
+          <th class="px-4 py-3 border">用户姓名</th>
+          <th class="px-4 py-3 border">车牌号</th>
+          <th class="px-4 py-3 border">支付状态</th>
+          <th class="px-4 py-3 border">操作</th>
+        </tr>
+      </thead>
+      <tbody id="exitTableBody" class="text-sm text-center">
+        <!-- 数据动态插入 -->
+      </tbody>
+    </table>
+  </div>
+
+  <div id="pagination" class="flex justify-center mt-4 space-x-2">
+    <!-- 分页控件动态插入 -->
+  </div>
+</div>
+{% endblock %}

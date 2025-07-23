@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from middleware.user import UserContextMiddleware
 from db import engine, SessionLocal
 from models.user import Base, User # 确保 User 模型被导入以创建表
-from api import home, user, parking, spaces, settings, help, auth
+from api import home, user, parking, spaces, settings, help, auth, reservation
 
 # ✅ 使用“运行目录”作为根目录
 BASE_DIR = os.getcwd()
@@ -49,6 +49,7 @@ app.include_router(spaces.router)
 app.include_router(settings.router)
 app.include_router(help.router)
 app.include_router(auth.router)
+app.include_router(reservation.router)
 
 # from fastapi.middleware import Middleware
 # app = FastAPI(middleware=[Middleware(UserContextMiddleware)])

@@ -1,0 +1,46 @@
+
+
+{% extends "base.html" %}
+{% block content %}
+<div class="p-4">
+  <h1 class="text-xl font-bold mb-4">车位类型管理</h1>
+
+  <div class="mb-4 space-x-2">
+    <button id="addSlotTypeBtn" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+      <i class="fas fa-plus mr-1"></i> 添加
+    </button>
+    <button id="viewSlotTypeBtn" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">
+      <i class="fas fa-eye mr-1"></i> 详情
+    </button>
+    <button id="editSlotTypeBtn" class="px-3 py-1 bg-yellow-600 text-white rounded hover:bg-yellow-700 text-sm">
+      <i class="fas fa-edit mr-1"></i> 编辑
+    </button>
+    <button id="deleteSlotTypeBtn" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
+      <i class="fas fa-trash mr-1"></i> 删除
+    </button>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm text-left">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3">选择</th>
+          <th class="px-4 py-3">序号</th>
+          <th class="px-4 py-3">车位类型</th>
+          <th class="px-4 py-3">操作</th>
+        </tr>
+      </thead>
+      <tbody id="slotTypeList" class="bg-white divide-y divide-gray-200">
+        <!-- 车位类型列表由 JS 动态插入 -->
+      </tbody>
+    </table>
+  </div>
+
+  <div id="slotTypePagination" class="mt-4 flex justify-center space-x-2">
+    <!-- 分页控件由 JS 动态生成 -->
+  </div>
+</div>
+{% block scripts %}
+  <script src="{{ url_for('static', path='/js/reservation/slot_types.js') }}"></script>
+{% endblock %}
+{% endblock %}

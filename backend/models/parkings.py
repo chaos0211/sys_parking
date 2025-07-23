@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 
 from models.base import Base
+
 class Parking(Base):
     __tablename__ = "parkings"
 

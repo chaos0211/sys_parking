@@ -14,28 +14,58 @@
     <p class="text-xs uppercase text-gray-400 font-semibold mb-3 px-2">主导航</p>
     <ul class="space-y-1">
       <li>
-        <a href="/" class="nav-link sidebar-item-active flex items-center space-x-3 px-3 py-3 rounded-lg transition-all" data-page="dashboard">
+        <a href="/" class="nav-link sidebar-item-active flex items-center space-x-3 px-3 py-3 rounded-lg transition-all {% if request.url.path == '/' %}bg-blue-100 text-primary font-semibold{% endif %}{% if request.url.path == '/' %} text-primary font-semibold{% endif %}" data-page="dashboard">
           <i class="fas fa-tachometer-alt w-5 text-center"></i>
-          <span>首页</span>
+          <span class="text-gray-700 {% if request.url.path == '/' %}text-primary font-semibold{% endif %}">首页</span>
         </a>
       </li>
       <li>
-        <a href="/users" class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100" data-page="user-management">
+        <a href="/users" class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 {% if request.url.path.startswith('/users') %}bg-blue-100 text-primary font-semibold{% endif %}{% if request.url.path.startswith('/users') %} text-primary font-semibold{% endif %}" data-page="user-management">
           <i class="fas fa-users w-5 text-center"></i>
-          <span>用户管理</span>
+          <span class="text-gray-700 {% if request.url.path.startswith('/users') %}text-primary font-semibold{% endif %}">用户管理</span>
         </a>
       </li>
       <li>
-        <a href="/parkings" class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100" data-page="parking-management">
+        <a href="/parkings" class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100 {% if request.url.path.startswith('/parkings') %}bg-blue-100 text-primary font-semibold{% endif %}{% if request.url.path.startswith('/parkings') %} text-primary font-semibold{% endif %}" data-page="parking-management">
           <i class="fas fa-map-marker-alt w-5 text-center"></i>
-          <span>停车场管理</span>
+          <span class="text-gray-700 {% if request.url.path.startswith('/parkings') %}text-primary font-semibold{% endif %}">停车场管理</span>
         </a>
       </li>
       <li>
-        <a href="/spaces" class="nav-link flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-gray-100" data-page="space-management">
-          <i class="fas fa-square w-5 text-center"></i>
-          <span>车位信息管理</span>
-        </a>
+        <div class="group relative">
+          {# 判断 reservation 下的所有子项是否激活 #}
+          {% set reservation_active = (
+            request.url.path.startswith('/reservation/slots') or
+            request.url.path.startswith('/reservation/slot_types') or
+            request.url.path.startswith('/reservation/reservations') or
+            request.url.path.startswith('/reservation/entries') or
+            request.url.path.startswith('/reservation/exits')
+          ) %}
+          <div id="toggle-reservation-menu" data-page="reservation" class="flex items-center justify-between px-3 py-3 rounded-lg hover:bg-gray-100 cursor-pointer w-full {% if reservation_active %}bg-blue-100 text-primary font-semibold{% endif %}">
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-square w-5 text-center"></i>
+              <span class="text-gray-700 {% if reservation_active %}text-primary font-semibold{% endif %}">车位信息管理</span>
+            </div>
+            <i id="reservation-toggle-icon" class="fas fa-chevron-down text-sm transition-opacity duration-200"></i>
+          </div>
+          <ul id="reservation-submenu" class="ml-10 mt-1 space-y-1 text-sm text-gray-600 hidden">
+            <li>
+              <a href="/reservation/slots" class="block px-2 py-2 rounded hover:bg-gray-100 {% if request.url.path.startswith('/reservation/slots') %}bg-blue-100 text-primary font-semibold{% endif %} {% if request.url.path.startswith('/reservation/slots') %}text-primary font-semibold{% endif %}">车位信息</a>
+            </li>
+            <li>
+              <a href="/reservation/slot_types" class="block px-2 py-2 rounded hover:bg-gray-100 {% if request.url.path.startswith('/reservation/slot_types') %}bg-blue-100 text-primary font-semibold{% endif %} {% if request.url.path.startswith('/reservation/slot_types') %}text-primary font-semibold{% endif %}">车位类型</a>
+            </li>
+            <li>
+              <a href="/reservation/reservations" class="block px-2 py-2 rounded hover:bg-gray-100 {% if request.url.path.startswith('/reservation/reservations') %}bg-blue-100 text-primary font-semibold{% endif %} {% if request.url.path.startswith('/reservation/reservations') %}text-primary font-semibold{% endif %}">车位预约</a>
+            </li>
+            <li>
+              <a href="/reservation/entries" class="block px-2 py-2 rounded hover:bg-gray-100 {% if request.url.path.startswith('/reservation/entries') %}bg-blue-100 text-primary font-semibold{% endif %} {% if request.url.path.startswith('/reservation/entries') %}text-primary font-semibold{% endif %}">车辆入场</a>
+            </li>
+            <li>
+              <a href="/reservation/exits" class="block px-2 py-2 rounded hover:bg-gray-100 {% if request.url.path.startswith('/reservation/exits') %}bg-blue-100 text-primary font-semibold{% endif %} {% if request.url.path.startswith('/reservation/exits') %}text-primary font-semibold{% endif %}">车辆离场</a>
+            </li>
+          </ul>
+        </div>
       </li>
     </ul>
   </nav>
@@ -45,17 +75,52 @@
   <ul class="space-y-1 px-2">
     <li>
       <a href="{{ url_for('settings_page') }}"
-         class="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 {% if request.url.path.startswith('/settings') %}bg-blue-50 text-primary{% endif %}">
+         class="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 {% if request.url.path.startswith('/settings') %}bg-blue-100 text-primary font-semibold{% endif %}{% if request.url.path.startswith('/settings') %} text-primary font-semibold{% endif %}">
         <i class="fas fa-cog w-5"></i>
-        <span>系统设置</span>
+        <span class="text-gray-700 {% if request.url.path.startswith('/settings') %}text-primary font-semibold{% endif %}">系统设置</span>
       </a>
     </li>
     <li>
       <a href="{{ url_for('help_page') }}"
-         class="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 {% if request.url.path.startswith('/help') %}bg-blue-50 text-primary{% endif %}">
+         class="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 text-gray-700 {% if request.url.path.startswith('/help') %}bg-blue-100 text-primary font-semibold{% endif %}{% if request.url.path.startswith('/help') %} text-primary font-semibold{% endif %}">
         <i class="fas fa-question-circle w-5"></i>
-        <span>帮助中心</span>
+        <span class="text-gray-700 {% if request.url.path.startswith('/help') %}text-primary font-semibold{% endif %}">帮助中心</span>
       </a>
     </li>
   </ul>
 </aside>
+<script>
+  const toggleBtn = document.getElementById('toggle-reservation-menu');
+  const submenu = document.getElementById('reservation-submenu');
+  const icon = document.getElementById('reservation-toggle-icon');
+
+  toggleBtn.addEventListener('click', function () {
+    submenu.classList.toggle('hidden');
+    icon.classList.toggle('fa-chevron-down');
+    icon.classList.toggle('fa-chevron-up');
+  });
+
+  // 保持子模块展开状态如果当前 URL 含有 reservation 子路由
+  if (window.location.pathname.startsWith('/reservation/')) {
+    submenu.classList.remove('hidden');
+    icon.classList.remove('fa-chevron-down');
+    icon.classList.add('fa-chevron-up');
+    // 不再在JS中添加样式，已由模板控制
+  }
+
+  // 防止点击其他主模块时折叠展开子菜单
+  const navLinks = document.querySelectorAll('.nav-link');
+  navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      sessionStorage.setItem('reservationExpanded', submenu.classList.contains('hidden') ? 'false' : 'true');
+    });
+  });
+
+  // 页面加载时恢复展开状态
+  if (sessionStorage.getItem('reservationExpanded') === 'true') {
+    submenu.classList.remove('hidden');
+    icon.classList.remove('fa-chevron-down');
+    icon.classList.add('fa-chevron-up');
+    // 不再在JS中添加样式，已由模板控制
+  }
+</script>

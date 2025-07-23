@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Request, Form, Depends
+import hashlib
+import os
+
+from fastapi import APIRouter, Request, Form, Depends, UploadFile, File
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from db import SessionLocal
-from models.reservation import ParkingSlotType
+from models.reservation import ParkingSlotType, ParkingSlot
 from datetime import datetime
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -118,6 +121,178 @@ async def delete_slot_type(id: int):
         db.close()
         return JSONResponse(status_code=404, content={"message": "未找到该类型"})
     db.delete(slot_type)
+    db.commit()
+    db.close()
+    return {"message": "删除成功"}
+
+
+# 车位信息相关 API
+from datetime import datetime
+
+@router.get("/api/reservation/slots")
+async def list_parking_slots():
+    db: Session = SessionLocal()
+    # 构建类型和停车场名称映射
+    type_map = {t.id: t.type_name for t in db.query(ParkingSlotType).all()}
+    from models.parkings import Parking  # 添加这行
+    parking_map = {p.id: p.name for p in db.query(Parking).all()}
+
+    # 状态映射
+    status_map = {
+        "free": "空闲",
+        "occupy": "占用",
+        "repair": "维修"
+    }
+
+    slots = db.query(ParkingSlot).order_by(ParkingSlot.id.asc()).all()
+    db.close()
+    return JSONResponse(content=[
+        {
+            "id": s.id,
+            "slot_number": s.slot_number,
+            "name": s.name,
+            "type_name": type_map.get(s.type_id, ""),
+            "parking_name": parking_map.get(s.location, ""),
+            "charge_rule": s.charge_rule,
+            "price_per_hour": s.price_per_hour,
+            "status": status_map.get(s.status, s.status),
+            "description": s.description,
+            "avatar1": s.avatar1,
+            "avatar2": s.avatar2,
+            "avatar3": s.avatar3,
+            "created_at": s.created_at.isoformat(),
+        } for s in slots
+    ])
+
+def save_avatar_file(file: UploadFile, upload_dir: str = "static/upload") -> str:
+    content = file.file.read()
+    ext = os.path.splitext(file.filename)[-1].lower()
+    sha1_name = hashlib.sha1(content).hexdigest() + ext
+    file_path = os.path.join(upload_dir, sha1_name)
+    with open(file_path, "wb") as f:
+        f.write(content)
+    return hashlib.sha1(content).hexdigest() + ext
+
+@router.post("/api/reservation/slots/add")
+async def add_parking_slot(
+    slot_number: str = Form(...),
+    name: str = Form(...),
+    type_id: int = Form(...),
+    location_id: int = Form(...),
+    charge_rule: str = Form(...),
+    price_per_hour: float = Form(...),
+    status: str = Form(...),
+    description: str = Form(default=""),
+    avatar1: UploadFile = File(None),
+    avatar2: UploadFile = File(None),
+    avatar3: UploadFile = File(None),
+):
+    db: Session = SessionLocal()
+    slot = ParkingSlot(
+        slot_number=slot_number,
+        name=name,
+        type_id=type_id,
+        location=location_id,
+        charge_rule=charge_rule,
+        price_per_hour=price_per_hour,
+        status=status,
+        description=description,
+        created_at=datetime.utcnow()
+    )
+
+    if avatar1:
+        slot.avatar1 = save_avatar_file(avatar1)
+    if avatar2:
+        slot.avatar2 = save_avatar_file(avatar2)
+    if avatar3:
+        slot.avatar3 = save_avatar_file(avatar3)
+    print("这里的slot的值为：", slot)
+    db.add(slot)
+    db.commit()
+    db.refresh(slot)
+    db.close()
+    return {"message": "添加成功", "id": slot.id}
+
+@router.get("/api/reservation/slots/detail")
+async def get_parking_slot_detail(id: int):
+    from models.parkings import Parking  # 确保导入 Parking 模型
+
+    status_map = {
+        "free": "空闲",
+        "occupy": "占用",
+        "repair": "维修"
+    }
+
+    db: Session = SessionLocal()
+    slot = db.query(ParkingSlot).filter(ParkingSlot.id == id).first()
+    if not slot:
+        db.close()
+        return JSONResponse(status_code=404, content={"message": "未找到该车位"})
+
+    type_obj = db.query(ParkingSlotType).filter(ParkingSlotType.id == slot.type_id).first()
+    parking_obj = db.query(Parking).filter(Parking.id == slot.location).first()
+
+    result = {
+        "id": slot.id,
+        "slot_number": slot.slot_number,
+        "name": slot.name,
+        "type_id": slot.type_id,
+        "type_name": type_obj.type_name if type_obj else "",
+        "location": slot.location,
+        "parking_name": parking_obj.name if parking_obj else "",
+        "charge_rule": slot.charge_rule,
+        "price_per_hour": slot.price_per_hour,
+        "status": status_map.get(slot.status, slot.status),
+        "description": slot.description,
+        "avatar1": slot.avatar1,
+        "avatar2": slot.avatar2,
+        "avatar3": slot.avatar3,
+        "created_at": slot.created_at.isoformat(),
+    }
+    db.close()
+    return result
+
+@router.post("/api/reservation/slots/edit")
+async def edit_parking_slot(
+    id: int = Form(...),
+    slot_name: str = Form(...),
+    slot_type: str = Form(...),
+    location: str = Form(...),
+    charge_rule: str = Form(...),
+    price_per_hour: float = Form(...),
+    status: str = Form(...),
+    description: str = Form(default=""),
+    avatar1: str = Form(default=""),
+    avatar2: str = Form(default=""),
+    avatar3: str = Form(default="")
+):
+    db: Session = SessionLocal()
+    slot = db.query(ParkingSlot).filter(ParkingSlot.id == id).first()
+    if not slot:
+        db.close()
+        return JSONResponse(status_code=404, content={"message": "未找到该车位"})
+    slot.slot_name = slot_name
+    slot.slot_type = slot_type
+    slot.location = location
+    slot.charge_rule = charge_rule
+    slot.price_per_hour = price_per_hour
+    slot.status = status
+    slot.description = description
+    slot.avatar1 = avatar1
+    slot.avatar2 = avatar2
+    slot.avatar3 = avatar3
+    db.commit()
+    db.close()
+    return {"message": "修改成功"}
+
+@router.delete("/api/reservation/slots/delete")
+async def delete_parking_slot(id: int):
+    db: Session = SessionLocal()
+    slot = db.query(ParkingSlot).filter(ParkingSlot.id == id).first()
+    if not slot:
+        db.close()
+        return JSONResponse(status_code=404, content={"message": "未找到该车位"})
+    db.delete(slot)
     db.commit()
     db.close()
     return {"message": "删除成功"}

@@ -1,8 +1,20 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, Text, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
 from models.base import Base
+import enum
+
+
+class SlotStatusEnum(str, enum.Enum):
+    free = "free"
+    occupy = "occupy"
+    repair = "repair"
+
+
+class ChargeRuleEnum(str, enum.Enum):
+    hour = "hour"
+    month = "month"
 
 
 class ParkingSlotType(Base):
@@ -22,10 +34,10 @@ class ParkingSlot(Base):
     slot_number = Column(String(50), unique=True, nullable=False)
     name = Column(String(100), nullable=False)
     type_id = Column(Integer, ForeignKey("parking_slot_types.id"))
-    location = Column(String(100))
-    charge_rule = Column(String(50))
+    location = Column(Integer, ForeignKey("parkings.id"))
+    charge_rule = Column(Enum(ChargeRuleEnum), nullable=False)
     price_per_hour = Column(Float)
-    status = Column(String(20), default="空闲")
+    status = Column(Enum(SlotStatusEnum), default=SlotStatusEnum.free)
     avatar1 = Column(String(200))
     avatar2 = Column(String(200))
     avatar3 = Column(String(200))
@@ -34,6 +46,7 @@ class ParkingSlot(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     type = relationship("ParkingSlotType")
+    parking = relationship("Parking")
 
 
 class ParkingReservation(Base):

@@ -130,7 +130,7 @@ async def delete_slot_type(id: int):
 from datetime import datetime
 
 @router.get("/api/reservation/slots")
-async def list_parking_slots():
+async def list_parking_slots(page: int = 1, page_size: int = 10):
     db: Session = SessionLocal()
     # 构建类型和停车场名称映射
     type_map = {t.id: t.type_name for t in db.query(ParkingSlotType).all()}
@@ -144,25 +144,31 @@ async def list_parking_slots():
         "repair": "维修"
     }
 
-    slots = db.query(ParkingSlot).order_by(ParkingSlot.id.asc()).all()
+    total = db.query(ParkingSlot).count()
+    slots = db.query(ParkingSlot).order_by(ParkingSlot.id.asc()).offset((page - 1) * page_size).limit(page_size).all()
     db.close()
-    return JSONResponse(content=[
-        {
-            "id": s.id,
-            "slot_number": s.slot_number,
-            "name": s.name,
-            "type_name": type_map.get(s.type_id, ""),
-            "parking_name": parking_map.get(s.location, ""),
-            "charge_rule": s.charge_rule,
-            "price_per_hour": s.price_per_hour,
-            "status": status_map.get(s.status, s.status),
-            "description": s.description,
-            "avatar1": s.avatar1,
-            "avatar2": s.avatar2,
-            "avatar3": s.avatar3,
-            "created_at": s.created_at.isoformat(),
-        } for s in slots
-    ])
+    return JSONResponse(content={
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": [
+            {
+                "id": s.id,
+                "slot_number": s.slot_number,
+                "name": s.name,
+                "type_name": type_map.get(s.type_id, ""),
+                "parking_name": parking_map.get(s.location, ""),
+                "charge_rule": s.charge_rule,
+                "price_per_hour": s.price_per_hour,
+                "status": status_map.get(s.status, s.status),
+                "description": s.description,
+                "avatar1": s.avatar1,
+                "avatar2": s.avatar2,
+                "avatar3": s.avatar3,
+                "created_at": s.created_at.isoformat(),
+            } for s in slots
+        ]
+    })
 
 def save_avatar_file(file: UploadFile, upload_dir: str = "static/upload") -> str:
     content = file.file.read()
@@ -178,7 +184,7 @@ async def add_parking_slot(
     slot_number: str = Form(...),
     name: str = Form(...),
     type_id: int = Form(...),
-    location_id: int = Form(...),
+    location: int = Form(...),
     charge_rule: str = Form(...),
     price_per_hour: float = Form(...),
     status: str = Form(...),
@@ -192,7 +198,7 @@ async def add_parking_slot(
         slot_number=slot_number,
         name=name,
         type_id=type_id,
-        location=location_id,
+        location=location,
         charge_rule=charge_rule,
         price_per_hour=price_per_hour,
         status=status,
@@ -255,32 +261,40 @@ async def get_parking_slot_detail(id: int):
 @router.post("/api/reservation/slots/edit")
 async def edit_parking_slot(
     id: int = Form(...),
-    slot_name: str = Form(...),
-    slot_type: str = Form(...),
-    location: str = Form(...),
+    slot_number: str = Form(...),
+    name: str = Form(...),
+    type_id: int = Form(...),
+    location: int = Form(...),
     charge_rule: str = Form(...),
     price_per_hour: float = Form(...),
     status: str = Form(...),
     description: str = Form(default=""),
-    avatar1: str = Form(default=""),
-    avatar2: str = Form(default=""),
-    avatar3: str = Form(default="")
+    avatar1: UploadFile = File(None),
+    avatar2: UploadFile = File(None),
+    avatar3: UploadFile = File(None)
 ):
     db: Session = SessionLocal()
     slot = db.query(ParkingSlot).filter(ParkingSlot.id == id).first()
     if not slot:
         db.close()
         return JSONResponse(status_code=404, content={"message": "未找到该车位"})
-    slot.slot_name = slot_name
-    slot.slot_type = slot_type
+    slot.slot_number = slot_number
+    slot.name = name
+    slot.type_id = type_id
     slot.location = location
     slot.charge_rule = charge_rule
     slot.price_per_hour = price_per_hour
     slot.status = status
     slot.description = description
-    slot.avatar1 = avatar1
-    slot.avatar2 = avatar2
-    slot.avatar3 = avatar3
+    if avatar1:
+        slot.avatar1 = save_avatar_file(avatar1)
+    if avatar2:
+        slot.avatar2 = save_avatar_file(avatar2)
+    if avatar3:
+        slot.avatar3 = save_avatar_file(avatar3)
+    # slot.avatar1 = avatar1
+    # slot.avatar2 = avatar2
+    # slot.avatar3 = avatar3
     db.commit()
     db.close()
     return {"message": "修改成功"}

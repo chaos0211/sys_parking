@@ -17,6 +17,13 @@ templates = Jinja2Templates(directory="templates")
 
 router = APIRouter()
 
+
+status_map = {
+        "reserving": "预约中",
+        "entered": "已入场",
+        "exited": "已离场"
+    }
+
 @router.get("/reservation/slots", response_class=HTMLResponse)
 async def reservation_slots_page(request: Request, current_user: User = Depends(get_current_user)):
     return templates.TemplateResponse("reservation/parking_slots.html", {
@@ -141,11 +148,6 @@ async def list_reservations(page: int = 1, page_size: int = 10):
     reservations = query.order_by(ParkingReservation.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
     db.close()
 
-    status_map = {
-        "reserving": "预约中",
-        "entered": "已入场",
-        "exited": "已离场"
-    }
 
     return JSONResponse(content={
         "total": total,
@@ -176,6 +178,13 @@ async def add_reservation(request: Request):
     license_plate = data.get("license_plate")
     reservation_time = data.get("reservation_time")
     db: Session = SessionLocal()
+
+    # 仅允许选择 status 为 "free" 的车位
+    slot = db.query(ParkingSlot).filter(ParkingSlot.id == slot_id, ParkingSlot.status == "free").first()
+    if not slot:
+        db.close()
+        return JSONResponse(status_code=400, content={"message": "无效的车位编号或车位已被占用"})
+
     reservation = ParkingReservation(
         slot_id=slot_id,
         license_plate=license_plate,
@@ -184,29 +193,51 @@ async def add_reservation(request: Request):
         status="reserving"
     )
     db.add(reservation)
+    slot.status = "occupy"
     db.commit()
     db.refresh(reservation)
     db.close()
     return {"message": "预约成功", "id": reservation.id}
 
 
-@router.post("/api/reservation/reserve/edit")
+
+@router.put("/api/reservation/reserve/edit/{id}")
 async def edit_reservation(
-    id: int = Form(...),
-    slot_id: int = Form(...),
-    license_plate: str = Form(...),
-    reserved_at: str = Form(...),
-    status: str = Form(...)
+    id: int,
+    request: Request
 ):
     db: Session = SessionLocal()
     reservation = db.query(ParkingReservation).filter(ParkingReservation.id == id).first()
     if not reservation:
         db.close()
         return JSONResponse(status_code=404, content={"message": "未找到该预约记录"})
-    reservation.slot_id = slot_id
-    reservation.license_plate = license_plate
-    reservation.reserved_at = datetime.fromisoformat(reserved_at)
-    reservation.status = status
+
+    data = await request.json()
+    slot_id = data.get("slot_id")
+    reserved_at = data.get("reserved_at")
+    # Ensure reserved_at is a string and not a dict/list
+    if isinstance(reserved_at, (dict, list)):
+        db.close()
+        return JSONResponse(status_code=400, content={"message": "预约时间格式错误"})
+    if not isinstance(reserved_at, str):
+        reserved_at = str(reserved_at)
+    print("reservation的值为：", reservation)
+    print("reserved_at的值为：", reserved_at)
+    if reserved_at:
+        reservation.reserved_at = datetime.fromisoformat(str(reserved_at))
+    reservation.updated_at = datetime.utcnow()
+
+    if str(reservation.slot_id) != str(slot_id):
+        old_slot = db.query(ParkingSlot).filter(ParkingSlot.id == reservation.slot_id).first()
+        new_slot = db.query(ParkingSlot).filter(ParkingSlot.id == slot_id, ParkingSlot.status == "free").first()
+        if not new_slot:
+            db.close()
+            return JSONResponse(status_code=400, content={"message": "目标车位无效或不可用"})
+        if old_slot:
+            old_slot.status = "free"
+        new_slot.status = "occupy"
+        reservation.slot_id = slot_id
+
     db.commit()
     db.close()
     return {"message": "修改成功"}
@@ -230,7 +261,11 @@ async def get_reservation_detail(id: int):
         "license_plate": r.license_plate,
         "reserved_at": r.reserved_at.isoformat(),
         "updated_at": r.updated_at.isoformat(),
-        "status": r.status
+        # "status": r.status,
+        "status": status_map.get(r.status, r.status),
+        "avatar1": r.slot.avatar1 if r.slot else "",
+        "avatar2": r.slot.avatar2 if r.slot else "",
+        "avatar3": r.slot.avatar3 if r.slot else "",
     }
     db.close()
     return result

@@ -16,10 +16,17 @@ class ReservationManager {
 
     bindEvents() {
         // 按钮事件绑定
-        document.getElementById('addReservationBtn').addEventListener('click', () => this.showAddModal());
-        document.getElementById('viewReservationBtn').addEventListener('click', () => this.viewSelected());
-        document.getElementById('editReservationBtn').addEventListener('click', () => this.editSelected());
-        document.getElementById('deleteReservationBtn').addEventListener('click', () => this.deleteSelected());
+        const addBtn = document.getElementById('addReservationBtn');
+        if (addBtn) addBtn.addEventListener('click', () => this.showAddModal());
+
+        const viewBtn = document.getElementById('viewReservationBtn');
+        if (viewBtn) viewBtn.addEventListener('click', () => this.viewSelected());
+
+        const editBtn = document.getElementById('editReservationBtn');
+        if (editBtn) editBtn.addEventListener('click', () => this.editSelected());
+
+        const deleteBtn = document.getElementById('deleteReservationBtn');
+        if (deleteBtn) deleteBtn.addEventListener('click', () => this.deleteSelected());
 
         // 全选复选框事件
         document.addEventListener('change', (e) => {
@@ -74,8 +81,8 @@ class ReservationManager {
                     </span>
                 </td>
                 <td class="px-4 py-3 border-b">${reservation.license_plate}</td>
+                <td class="px-4 py-3 border-b">${reservation.status}</td>
                 <td class="px-4 py-3 border-b">${this.formatDateTime(reservation.reserved_at)}</td>
-                <td class="px-4 py-3 border-b">${this.formatDateTime(reservation.updated_at)}</td>
                 <td class="px-4 py-3 border-b">
                     <button onclick="reservationManager.viewReservation(${reservation.id})" 
                             class="px-2 py-1 bg-blue-500 text-white rounded text-xs mr-1 hover:bg-blue-600">
@@ -85,10 +92,11 @@ class ReservationManager {
                             class="px-2 py-1 bg-yellow-500 text-white rounded text-xs mr-1 hover:bg-yellow-600">
                         编辑
                     </button>
-                    <button onclick="reservationManager.deleteReservation(${reservation.id})" 
+                    <!--<button onclick="reservationManager.deleteReservation(${reservation.id})" 
                             class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600">
                         删除
-                    </button>
+                    </button>-->
+                    <span style="display:none"></span>
                 </td>
             `;
             tbody.appendChild(row);
@@ -206,7 +214,7 @@ class ReservationManager {
         if (confirm(`确定要删除选中的 ${this.selectedIds.size} 个预约吗？`)) {
             try {
                 const deletePromises = Array.from(this.selectedIds).map(id =>
-                    fetch(`/api/reservations/${id}`, { method: 'DELETE' })
+                    fetch(`/api/reservation/reserve/delete/${id}`, { method: 'DELETE' })
                 );
 
                 await Promise.all(deletePromises);
@@ -223,11 +231,11 @@ class ReservationManager {
     // 查看单个预约
     async viewReservation(id) {
         try {
-            const response = await fetch(`/api/reservations/${id}`);
+            const response = await fetch(`/api/reservation/reserve/detail?id=${id}`);
             const reservation = await response.json();
 
             if (response.ok) {
-                this.showModal('预约详情', reservation, 'view');
+                this.showDetailModal(reservation);
             } else {
                 this.showMessage('获取预约详情失败', 'error');
             }
@@ -237,10 +245,61 @@ class ReservationManager {
         }
     }
 
+    showDetailModal(reservation) {
+        const existingModal = document.getElementById('reservationModal');
+        if (existingModal) existingModal.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'reservationModal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="bg-white rounded-lg p-6 w-full max-w-3xl mx-4 flex">
+                <div class="w-1/2 pr-4">
+                    <div class="relative">
+                        <img id="carouselImage" src="/static/upload/${reservation.avatar1}" class="w-full h-60 object-cover rounded border" />
+                        <button id="prevImage" class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white px-2 py-1 text-xs">←</button>
+                        <button id="nextImage" class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white px-2 py-1 text-xs">→</button>
+                    </div>
+                </div>
+                <div class="w-1/2 space-y-2">
+                    <h2 class="text-lg font-bold mb-2">预约详情</h2>
+                    <div><strong>车位编号：</strong> ${reservation.slot_number}</div>
+                    <div><strong>车位名称：</strong> ${reservation.slot_name}</div>
+                    <div><strong>车位类型：</strong> ${reservation.slot_type}</div>
+                    <div><strong>所属车库：</strong> ${reservation.parking_name}</div>
+                    <div><strong>车牌号：</strong> ${reservation.license_plate}</div>
+                    <div><strong>预约时间：</strong> ${this.formatDateTime(reservation.reserved_at)}</div>
+                    <div><strong>更新时间：</strong> ${this.formatDateTime(reservation.updated_at)}</div>
+                    <div><strong>状态：</strong> ${reservation.status}</div>
+                    <div class="mt-4 text-right">
+                        <button type="button" onclick="document.getElementById('reservationModal').remove()" 
+                                class="px-4 py-2 border rounded text-sm hover:bg-gray-100">关闭</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // 图片轮播逻辑
+        const images = [reservation.avatar1, reservation.avatar2, reservation.avatar3];
+        let currentImage = 0;
+        const imgElem = modal.querySelector('#carouselImage');
+
+        modal.querySelector('#prevImage').addEventListener('click', () => {
+            currentImage = (currentImage - 1 + images.length) % images.length;
+            imgElem.src = `/static/upload/${images[currentImage]}`;
+        });
+
+        modal.querySelector('#nextImage').addEventListener('click', () => {
+            currentImage = (currentImage + 1) % images.length;
+            imgElem.src = `/static/upload/${images[currentImage]}`;
+        });
+    }
+
     // 编辑单个预约
     async editReservation(id) {
         try {
-            const response = await fetch(`/api/reservations/${id}`);
+            const response = await fetch(`/api/reservation/reserve/detail?id=${id}`);
             const reservation = await response.json();
 
             if (response.ok) {
@@ -258,7 +317,7 @@ class ReservationManager {
     async deleteReservation(id) {
         if (confirm('确定要删除这个预约吗？')) {
             try {
-                const response = await fetch(`/api/reservations/${id}`, {
+                const response = await fetch(`/api/reservation/reserve/delete/${id}`, {
                     method: 'DELETE'
                 });
 
@@ -301,16 +360,15 @@ class ReservationManager {
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">车牌号</label>
-                            <div class="flex space-x-2">
+                            <div>
                                 <input type="text" name="license_plate" value="${data.license_plate || ''}" 
-                                       class="w-full border rounded px-3 py-2 text-sm" ${isView ? 'readonly' : ''} required>
-                                ${!isView ? `<button type="button" id="generatePlate" class="px-3 py-1 bg-gray-200 rounded text-sm">生成</button>` : ''}
+                                       class="w-full border rounded px-3 py-2 text-sm" ${(isView || isEdit) ? 'readonly' : ''} required>
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium mb-1">预约时间</label>
-                            <input type="datetime-local" name="reservation_time" 
-                                   value="${data.reservation_time ? this.formatDateTimeInput(data.reservation_time) : ''}" 
+                            <input type="datetime-local" name="reserved_at" 
+                                   value="${data.reserved_at ? this.formatDateTimeInput(data.reserved_at) : ''}" 
                                    class="w-full border rounded px-3 py-2 text-sm" ${isView ? 'readonly' : ''} required>
                         </div>
                     </div>
@@ -337,13 +395,15 @@ class ReservationManager {
                 .then(res => res.json())
                 .then(res => {
                     const slotSelect = modal.querySelector('#slotSelect');
-                    res.items.forEach(slot => {
-                        const option = document.createElement('option');
-                        option.value = slot.id;
-                        option.textContent = `${slot.id} - ${slot.name}`;
-                        if (data.slot_id == slot.id) option.selected = true;
-                        slotSelect.appendChild(option);
-                    });
+                    res.items
+                        .filter(slot => slot.status === '空闲' || slot.id == data.slot_id)
+                        .forEach(slot => {
+                            const option = document.createElement('option');
+                            option.value = slot.id;
+                            option.textContent = `${slot.id} - ${slot.name}`;
+                            if (data.slot_id == slot.id) option.selected = true;
+                            slotSelect.appendChild(option);
+                        });
                 });
 
             const genBtn = modal.querySelector('#generatePlate');
@@ -372,7 +432,7 @@ class ReservationManager {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            const url = mode === 'add' ? '/api/reservation/reserve/add' : `/api/reservations/${id}`;
+            const url = mode === 'add' ? '/api/reservation/reserve/add' : `/api/reservation/reserve/edit/${id}`;
             const method = mode === 'add' ? 'POST' : 'PUT';
             
             const response = await fetch(url, {
@@ -411,11 +471,20 @@ class ReservationManager {
     }
 
     toggleRowSelection(id, checked) {
+        // 取消所有复选框的勾选状态
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        checkboxes.forEach(cb => cb.checked = false);
+
+        // 清除已选项
+        this.selectedIds.clear();
+
+        // 设置当前选中项
         if (checked) {
             this.selectedIds.add(id);
-        } else {
-            this.selectedIds.delete(id);
+            const selectedCheckbox = document.querySelector(`.row-checkbox[value="${id}"]`);
+            if (selectedCheckbox) selectedCheckbox.checked = true;
         }
+
         this.updateSelectAllCheckbox();
     }
 

@@ -1,3 +1,4 @@
+
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float, Text, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -20,6 +21,10 @@ class ReservationStatusEnum(str, enum.Enum):
     reserving = "reserving"
     entered = "entered"
     exited = "exited"
+
+class PaymentStatusEnum(str, enum.Enum):
+    unpaid = "未支付"
+    paid = "已支付"
 
 
 class ParkingSlotType(Base):
@@ -100,12 +105,10 @@ class ParkingExit(Base):
     __tablename__ = "parking_exits"
 
     id = Column(Integer, primary_key=True, index=True)
-    entry_id = Column(Integer, ForeignKey("parking_entries.id"))
-    exit_time = Column(DateTime, default=datetime.utcnow)
+    entry_id = Column(Integer, ForeignKey("parking_entries.id"), unique=True)
+    exit_time = Column(DateTime, nullable=True)
     duration = Column(Float)  # 小时
-    price_per_hour = Column(Float)
-    total_fee = Column(Float)
-    payment_status = Column(String(20), default="未支付")
+    payment_status = Column(SqlEnum(PaymentStatusEnum), default=PaymentStatusEnum.unpaid)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     entry = relationship("ParkingEntry")

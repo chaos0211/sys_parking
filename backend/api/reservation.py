@@ -1,11 +1,13 @@
 import hashlib
 import os
 
+from sqlalchemy import case
+
 from fastapi import APIRouter, Request, Form, Depends, UploadFile, File
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from db import SessionLocal
-from models.reservation import ParkingSlotType, ParkingSlot, ParkingReservation
+from models.reservation import ParkingSlotType, ParkingSlot, ParkingReservation, ParkingExit
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 from fastapi.responses import HTMLResponse
@@ -177,8 +179,13 @@ async def add_reservation(request: Request):
     data = await request.json()
     slot_id = data.get("slot_id")
     license_plate = data.get("license_plate")
-    reservation_time = data.get("reservation_time")
+    reservation_time = data.get("reserved_at")
     db: Session = SessionLocal()
+
+    # 非空校验
+    if not reservation_time:
+        db.close()
+        return JSONResponse(status_code=400, content={"message": "预约时间不能为空"})
 
     # 仅允许选择 status 为 "free" 的车位
     slot = db.query(ParkingSlot).filter(ParkingSlot.id == slot_id, ParkingSlot.status == "free").first()
@@ -189,7 +196,7 @@ async def add_reservation(request: Request):
     reservation = ParkingReservation(
         slot_id=slot_id,
         license_plate=license_plate,
-        reserved_at=datetime.fromisoformat(reservation_time),
+        reserved_at=datetime.fromisoformat(str(reservation_time)) if reservation_time else datetime.utcnow(),
         created_at=datetime.utcnow(),
         status="reserving"
     )
@@ -477,7 +484,12 @@ async def list_parking_entries(page: int = 1, page_size: int = 10):
         joinedload(ParkingEntry.user)
     )
     total = query.count()
-    entries = query.order_by(ParkingEntry.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    review_order = case(
+        (ParkingEntry.review_status == "pending", 0),
+        (ParkingEntry.review_status.in_(["approved", "rejected"]), 1),
+        else_=2
+    )
+    entries = query.order_by(review_order, ParkingEntry.id.asc()).offset((page - 1) * page_size).limit(page_size).all()
 
     status_map = {"not_exited": "未离场", "exited": "已离场"}
     review_map = {"pending": "未审核", "approved": "通过", "rejected": "拒绝"}
@@ -556,3 +568,121 @@ async def review_entry(id: int = Form(...), review_status: str = Form(...), revi
     db.refresh(entry)
     db.close()
     return {"message": "审核完成", "id": entry.id}
+
+
+from math import ceil
+from datetime import timedelta
+
+@router.get("/api/reservation/exits/init")
+def init_exits():
+    db: Session = SessionLocal()
+    reviewed_entries = db.query(ParkingEntry).filter(
+        ParkingEntry.review_status == "approved"
+    ).all()
+
+    for entry in reviewed_entries:
+        now = datetime.utcnow() + timedelta(hours=8)
+        entry_time = entry.entry_time
+        duration_hours = ceil((now - entry_time).total_seconds() / 3600)
+        duration_hours = max(duration_hours, 1)
+
+        exit_record = db.query(ParkingExit).filter(ParkingExit.entry_id == entry.id).first()
+        if exit_record and exit_record.payment_status == "unpaid":
+            exit_record.duration = duration_hours
+        elif not exit_record:
+            exit_record = ParkingExit(entry_id=entry.id, payment_status="unpaid", duration=duration_hours)
+            db.add(exit_record)
+
+    db.commit()
+    db.close()
+    return {"message": "同步成功"}
+
+
+from datetime import datetime
+
+@router.get("/api/reservation/exits")
+def list_exits(page: int = 1, page_size: int = 10):
+    db: Session = SessionLocal()
+
+    query = db.query(ParkingExit).options(
+        joinedload(ParkingExit.entry).joinedload(ParkingEntry.slot).joinedload(ParkingSlot.parking),
+        joinedload(ParkingExit.entry).joinedload(ParkingEntry.user)
+    )
+
+    total = query.count()
+    exits = query.order_by(ParkingExit.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
+
+    # 支付状态映射
+    payment_status_map = {
+        "paid": "已支付",
+        "unpaid": "未支付"
+    }
+
+    from datetime import timedelta
+    result = []
+    for idx, ex in enumerate(exits, start=(page - 1) * page_size + 1):
+        entry = ex.entry
+        slot = entry.slot
+        now = datetime.utcnow() + timedelta(hours=8)
+        # ✅ 动态计算停车时长
+        # if entry.exit_status == "exited":
+        #     duration = entry.duration or 0
+        #     exit_time = entry.exit_time.isoformat() if entry.exit_time else ""
+        # else:
+        #     duration = int((now - entry.entry_time).total_seconds() / 3600)
+        #     exit_time = ""
+        fee = round(ex.duration * slot.price_per_hour, 2) if slot else 0
+
+        result.append({
+            "id": ex.id,
+            "entry_id": entry.id,
+            "index": idx,
+            "slot_number": slot.slot_number if slot else "",
+            "slot_name": slot.name if slot else "",
+            "parking_name": slot.parking.name if slot and slot.parking else "",
+            "entry_time": entry.entry_time.isoformat() if entry.entry_time else "",
+            "exit_time": ex.exit_time.isoformat() if ex.exit_time else "",
+            "duration": ex.duration,
+            "price_per_hour": slot.price_per_hour if slot else 0,
+            "fee": fee,
+            "username": entry.user.username if entry.user else "",
+            "license_plate": entry.user.plate if entry.user else "",
+            "payment_status": payment_status_map.get(ex.payment_status, ex.payment_status)
+        })
+
+    db.close()
+    return JSONResponse(content={
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": result
+    })
+
+@router.post("/api/reservation/exits/pay")
+async def mark_paid(entry_id: int = Form(...)):
+    db: Session = SessionLocal()
+    entry = db.query(ParkingEntry).filter(ParkingEntry.id == entry_id).first()
+    exit_record = db.query(ParkingExit).filter(ParkingExit.entry_id == entry_id).first()
+
+    if not entry or not exit_record:
+        db.close()
+        return JSONResponse(status_code=404, content={"message": "未找到记录"})
+
+    # 更新 entry 表状态
+    from datetime import timedelta
+    now = datetime.utcnow() + timedelta(hours=8)
+    entry.exit_status = "exited"
+    exit_record.exit_time = now
+    # entry.duration = round((now - entry.entry_time).total_seconds() / 3600, 2)
+
+    # 更新 slot 状态
+    if entry.slot:
+        slot = db.query(ParkingSlot).filter(ParkingSlot.id == entry.slot_id).first()
+        if slot:
+            slot.status = "free"
+
+    # 更新 exit 表支付状态
+    exit_record.payment_status = "paid"
+    db.commit()
+    db.close()
+    return {"message": "支付完成"}

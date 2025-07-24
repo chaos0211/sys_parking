@@ -53,6 +53,25 @@ class EntryManager {
         const tbody = document.getElementById('entryTableBody');
         tbody.innerHTML = '';
 
+        // 排序逻辑：待审核优先，然后已通过/已拒绝，然后按id升序
+        this.entries.sort((a, b) => {
+            const statusPriority = {
+                '待审核': 1,
+                '已通过': 2,
+                '已拒绝': 2
+            };
+
+            const aPriority = statusPriority[a.review_status] || 3;
+            const bPriority = statusPriority[b.review_status] || 3;
+
+            if (aPriority !== bPriority) {
+                return aPriority - bPriority;
+            }
+
+            // 第二排序规则：按 id 升序
+            return a.id - b.id;
+        });
+
         this.entries.forEach((entry, index) => {
             const row = document.createElement('tr');
             row.className = 'hover:bg-gray-50';
@@ -444,7 +463,7 @@ class EntryManager {
                             <div>
                                 <label class="block text-sm font-medium mb-1">离场状态</label>
                                 <select name="exit_status" class="w-full border rounded px-3 py-2 text-sm" required>
-                                    <option value="not_exited" ${data.exit_status === 'not_exited' ? 'selected' : ''}>未离场</option>
+                                    <option value="not_exited" ${data.exit_status === 'not_exit' ? 'selected' : ''}>未离场</option>
                                     <option value="exited" ${data.exit_status === 'exited' ? 'selected' : ''}>已离场</option>
                                 </select>
                             </div>
@@ -513,11 +532,13 @@ class EntryManager {
 
     // 工具方法
     getExitStatusClass(status) {
-        return status === 'exited' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+        return status === '已离场' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
     }
 
     getExitStatusText(status) {
-        return status === 'exited' ? '已离场' : '未离场';
+        if (status === '未离场') return '未离场';
+        if (status === '已离场') return '已离场';
+        return status;
     }
 
     getAuditStatusClass(status) {

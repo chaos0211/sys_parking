@@ -41,4 +41,8 @@
   </div>
   <div id="pagination" class="mt-4 flex justify-center"></div>
 </div>
+
+{% block scripts %}
+  <script src="{{ url_for('static', path='/js/reservation/reservations.js') }}"></script>
+{% endblock %}
 {% endblock %}

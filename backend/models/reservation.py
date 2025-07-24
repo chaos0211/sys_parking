@@ -16,6 +16,11 @@ class ChargeRuleEnum(str, enum.Enum):
     hour = "hour"
     month = "month"
 
+class ReservationStatusEnum(str, enum.Enum):
+    reserving = "reserving"
+    entered = "entered"
+    exited = "exited"
+
 
 class ParkingSlotType(Base):
     __tablename__ = "parking_slot_types"
@@ -56,8 +61,9 @@ class ParkingReservation(Base):
     slot_id = Column(Integer, ForeignKey("parking_slots.id"))
     license_plate = Column(String(50), nullable=False)
     reserved_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    status = Column(String(20), default="预约中")
+    status = Column(Enum(ReservationStatusEnum), default=ReservationStatusEnum.reserving)
 
     slot = relationship("ParkingSlot")
 

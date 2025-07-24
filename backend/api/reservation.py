@@ -5,8 +5,9 @@ from fastapi import APIRouter, Request, Form, Depends, UploadFile, File
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from db import SessionLocal
-from models.reservation import ParkingSlotType, ParkingSlot
+from models.reservation import ParkingSlotType, ParkingSlot, ParkingReservation
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from models.user import User
@@ -121,6 +122,128 @@ async def delete_slot_type(id: int):
         db.close()
         return JSONResponse(status_code=404, content={"message": "未找到该类型"})
     db.delete(slot_type)
+    db.commit()
+    db.close()
+    return {"message": "删除成功"}
+
+
+# 预约相关 API
+
+@router.get("/api/reservation/reserve")
+async def list_reservations(page: int = 1, page_size: int = 10):
+    db: Session = SessionLocal()
+
+    query = db.query(ParkingReservation).options(
+        joinedload(ParkingReservation.slot).joinedload(ParkingSlot.type),
+        joinedload(ParkingReservation.slot).joinedload(ParkingSlot.parking)
+    )
+    total = query.count()
+    reservations = query.order_by(ParkingReservation.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    db.close()
+
+    status_map = {
+        "reserving": "预约中",
+        "entered": "已入场",
+        "exited": "已离场"
+    }
+
+    return JSONResponse(content={
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": [
+            {
+                "id": r.id,
+                "slot_id": r.slot_id,
+                "slot_number": r.slot.slot_number if r.slot else "",
+                "slot_name": r.slot.name if r.slot else "",
+                "slot_type": r.slot.type.type_name if r.slot and r.slot.type else "",
+                "parking_name": r.slot.parking.name if r.slot and r.slot.parking else "",
+                "license_plate": r.license_plate,
+                "reserved_at": r.reserved_at.isoformat(),
+                "updated_at": r.updated_at.isoformat(),
+                "status": status_map.get(r.status, r.status)
+            }
+            for r in reservations
+        ]
+    })
+
+
+@router.post("/api/reservation/reserve/add")
+async def add_reservation(request: Request):
+    data = await request.json()
+    slot_id = data.get("slot_id")
+    license_plate = data.get("license_plate")
+    reservation_time = data.get("reservation_time")
+    db: Session = SessionLocal()
+    reservation = ParkingReservation(
+        slot_id=slot_id,
+        license_plate=license_plate,
+        reserved_at=datetime.fromisoformat(reservation_time),
+        created_at=datetime.utcnow(),
+        status="reserving"
+    )
+    db.add(reservation)
+    db.commit()
+    db.refresh(reservation)
+    db.close()
+    return {"message": "预约成功", "id": reservation.id}
+
+
+@router.post("/api/reservation/reserve/edit")
+async def edit_reservation(
+    id: int = Form(...),
+    slot_id: int = Form(...),
+    license_plate: str = Form(...),
+    reserved_at: str = Form(...),
+    status: str = Form(...)
+):
+    db: Session = SessionLocal()
+    reservation = db.query(ParkingReservation).filter(ParkingReservation.id == id).first()
+    if not reservation:
+        db.close()
+        return JSONResponse(status_code=404, content={"message": "未找到该预约记录"})
+    reservation.slot_id = slot_id
+    reservation.license_plate = license_plate
+    reservation.reserved_at = datetime.fromisoformat(reserved_at)
+    reservation.status = status
+    db.commit()
+    db.close()
+    return {"message": "修改成功"}
+
+
+@router.get("/api/reservation/reserve/detail")
+async def get_reservation_detail(id: int):
+    db: Session = SessionLocal()
+    r = db.query(ParkingReservation).options(joinedload(ParkingReservation.slot)).filter(ParkingReservation.id == id).first()
+    if not r:
+        db.close()
+        return JSONResponse(status_code=404, content={"message": "未找到该预约记录"})
+
+    result = {
+        "id": r.id,
+        "slot_id": r.slot_id,
+        "slot_number": r.slot.slot_number if r.slot else "",
+        "slot_name": r.slot.name if r.slot else "",
+        "slot_type": r.slot.type.type_name if r.slot and r.slot.type else "",
+        "parking_name": r.slot.parking.name if r.slot and r.slot.parking else "",
+        "license_plate": r.license_plate,
+        "reserved_at": r.reserved_at.isoformat(),
+        "updated_at": r.updated_at.isoformat(),
+        "status": r.status
+    }
+    db.close()
+    return result
+
+
+@router.delete("/api/reservation/reserve/delete")
+async def delete_reservation(id: int):
+    db: Session = SessionLocal()
+    r = db.query(ParkingReservation).filter(ParkingReservation.id == id).first()
+    if not r:
+        db.close()
+        return JSONResponse(status_code=404, content={"message": "未找到该预约记录"})
+    db.delete(r)
     db.commit()
     db.close()
     return {"message": "删除成功"}
@@ -292,9 +415,6 @@ async def edit_parking_slot(
         slot.avatar2 = save_avatar_file(avatar2)
     if avatar3:
         slot.avatar3 = save_avatar_file(avatar3)
-    # slot.avatar1 = avatar1
-    # slot.avatar2 = avatar2
-    # slot.avatar3 = avatar3
     db.commit()
     db.close()
     return {"message": "修改成功"}
@@ -310,3 +430,4 @@ async def delete_parking_slot(id: int):
     db.commit()
     db.close()
     return {"message": "删除成功"}
+

@@ -6,20 +6,20 @@
 <div class="p-4">
   <h1 class="text-xl font-semibold mb-4">车辆入场管理</h1>
 
-  <div class="mb-4 space-x-2">
-    <button id="addEntryBtn" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
-      <i class="fas fa-plus mr-1"></i> 添加
-    </button>
-    <button id="viewEntryBtn" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">
-      <i class="fas fa-eye mr-1"></i> 详情
-    </button>
-    <button id="approveEntryBtn" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-      <i class="fas fa-check mr-1"></i> 审核通过
-    </button>
-    <button id="rejectEntryBtn" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
-      <i class="fas fa-times mr-1"></i> 审核拒绝
-    </button>
-  </div>
+<!--  <div class="mb-4 space-x-2">-->
+<!--    <button id="addEntryBtn" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">-->
+<!--      <i class="fas fa-plus mr-1"></i> 添加-->
+<!--    </button>-->
+<!--    <button id="viewEntryBtn" class="px-3 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">-->
+<!--      <i class="fas fa-eye mr-1"></i> 详情-->
+<!--    </button>-->
+<!--    <button id="approveEntryBtn" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">-->
+<!--      <i class="fas fa-check mr-1"></i> 审核通过-->
+<!--    </button>-->
+<!--    <button id="rejectEntryBtn" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm">-->
+<!--      <i class="fas fa-times mr-1"></i> 审核拒绝-->
+<!--    </button>-->
+<!--  </div>-->
 
   <div class="overflow-x-auto bg-white rounded shadow">
     <table class="min-w-full table-auto">
@@ -30,7 +30,6 @@
           <th class="px-4 py-3">车位位置</th>
           <th class="px-4 py-3">车位名称</th>
           <th class="px-4 py-3">小时价格</th>
-          <th class="px-4 py-3">用户账号</th>
           <th class="px-4 py-3">用户姓名</th>
           <th class="px-4 py-3">车牌号</th>
           <th class="px-4 py-3">入场时间</th>
@@ -50,4 +49,8 @@
     <!-- JS will inject pagination buttons -->
   </div>
 </div>
+{% block scripts %}
+  <script src="{{ url_for('static', path='/js/reservation/entries.js') }}"></script>
+{% endblock %}
+
 {% endblock %}

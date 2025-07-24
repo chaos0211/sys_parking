@@ -11,6 +11,7 @@ from sqlalchemy.orm import joinedload
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from models.user import User
+from models.reservation import ParkingEntry
 from middleware.user import get_current_user
 
 templates = Jinja2Templates(directory="templates")
@@ -466,3 +467,92 @@ async def delete_parking_slot(id: int):
     db.close()
     return {"message": "删除成功"}
 
+
+@router.get("/api/reservation/entry")
+async def list_parking_entries(page: int = 1, page_size: int = 10):
+    db: Session = SessionLocal()
+    from models.reservation import ParkingSlot  # for joinedload
+    query = db.query(ParkingEntry).options(
+        joinedload(ParkingEntry.slot).joinedload(ParkingSlot.parking),
+        joinedload(ParkingEntry.user)
+    )
+    total = query.count()
+    entries = query.order_by(ParkingEntry.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
+
+    status_map = {"not_exited": "未离场", "exited": "已离场"}
+    review_map = {"pending": "未审核", "approved": "通过", "rejected": "拒绝"}
+
+    results = []
+    for i, e in enumerate(entries, start=1):
+        results.append({
+            "id": e.id,
+            "index": i + (page - 1) * page_size,
+            "slot_number": e.slot.slot_number if e.slot else "",
+            "slot_name": e.slot.name if e.slot else "",
+            "parking_name": e.slot.parking.name if e.slot and e.slot.parking else "",
+            "price_per_hour": e.slot.price_per_hour if e.slot else "",
+            "username": e.user.username if e.user else "",
+            "license_plate": e.user.plate if e.user else "",
+            "entry_time": e.entry_time.isoformat() if e.entry_time else "",
+            "exit_status": status_map.get(e.exit_status, e.exit_status),
+            "review_status": review_map.get(e.review_status, e.review_status),
+            "review_reply": e.review_reply or ""
+        })
+
+    db.close()
+    return JSONResponse(content={
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": results
+    })
+
+
+@router.get("/api/reservation/entry/detail")
+async def get_parking_entry_detail(id: int):
+    db: Session = SessionLocal()
+    from models.reservation import ParkingSlot  # for joinedload
+    entry = db.query(ParkingEntry).options(
+        joinedload(ParkingEntry.slot).joinedload(ParkingSlot.parking),
+        joinedload(ParkingEntry.user)
+    ).filter(ParkingEntry.id == id).first()
+    if not entry:
+        db.close()
+        return JSONResponse(status_code=404, content={"message": "未找到该入场记录"})
+
+    result = {
+        "id": entry.id,
+        "slot_number": entry.slot.slot_number if entry.slot else "",
+        "slot_name": entry.slot.name if entry.slot else "",
+        "parking_name": entry.slot.parking.name if entry.slot and entry.slot.parking else "",
+        "price_per_hour": entry.slot.price_per_hour if entry.slot else "",
+        "username": entry.user.username if entry.user else "",
+        "license_plate": entry.user.plate if entry.user else "",
+        "entry_time": entry.entry_time.isoformat() if entry.entry_time else "",
+        "exit_status": entry.exit_status,
+        "review_status": entry.review_status,
+        "review_reply": entry.review_reply,
+        "created_at": entry.created_at,
+    }
+    db.close()
+    return result
+
+
+@router.post("/api/reservation/entry/review")
+async def review_entry(id: int = Form(...), review_status: str = Form(...), review_reply: str = Form(default="")):
+    db: Session = SessionLocal()
+    entry = db.query(ParkingEntry).filter(ParkingEntry.id == id).first()
+    if not entry:
+        db.close()
+        return JSONResponse(status_code=404, content={"message": "未找到该入场记录"})
+
+    if review_status not in ["approved", "rejected"]:
+        db.close()
+        return JSONResponse(status_code=400, content={"message": "无效的审核状态"})
+
+    entry.review_status = review_status
+    entry.review_reply = review_reply
+    db.commit()
+    db.refresh(entry)
+    db.close()
+    return {"message": "审核完成", "id": entry.id}

@@ -68,20 +68,32 @@ class ParkingReservation(Base):
     slot = relationship("ParkingSlot")
 
 
+from sqlalchemy import Enum as SqlEnum
+import enum
+
+class ExitStatusEnum(str, enum.Enum):
+    not_exit = "未离场"
+    exited = "已离场"
+
+class ReviewStatusEnum(str, enum.Enum):
+    pending = "待审核"
+    approved = "已通过"
+    rejected = "已拒绝"
+
 class ParkingEntry(Base):
     __tablename__ = "parking_entries"
 
     id = Column(Integer, primary_key=True, index=True)
     slot_id = Column(Integer, ForeignKey("parking_slots.id"))
-    user_id = Column(Integer, nullable=False)
-    license_plate = Column(String(50), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"))
     entry_time = Column(DateTime, default=datetime.utcnow)
-    status = Column(String(20), default="未离场")
-    audit_status = Column(String(20), default="待审核")
-    audit_reply = Column(Text)
+    exit_status = Column(SqlEnum(ExitStatusEnum), default=ExitStatusEnum.not_exit)
+    review_status = Column(SqlEnum(ReviewStatusEnum), default=ReviewStatusEnum.pending)
+    review_reply = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     slot = relationship("ParkingSlot")
+    user = relationship("User")
 
 
 class ParkingExit(Base):
